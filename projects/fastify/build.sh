@@ -48,7 +48,7 @@ npm install
 
 cd $SRC/fastify
 npm install
-npm install --save-dev @jazzer.js/core
+npm install -g @jazzer.js/core
 
 # Copy Fasity plugin
 cp -r $SRC/fast-json-stringify $OUT/
