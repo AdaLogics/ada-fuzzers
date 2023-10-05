@@ -16,13 +16,47 @@
 'use strict'
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
-const { sign, unsign } = require('../fastify-cookie/signer.js');
+const Fastify = require('./fastify');
+const { fastifyCookie } = require('../fastify-cookie/plugin.js');
+const v8 = require('v8');
+const vm = require('vm');
 
 module.exports.fuzz = function(data) {
-  const provider = new FuzzedDataProvider(data);
-  if (provider.consumeBoolean()) {
-    sign(provider.consumeRemainingAsString(), provider.consumeRemainingAsString());
-  } else {
-    unsign(provider.consumeRemainingAsString(), provider.consumeRemainingAsString());
+  try {
+    const provider = new FuzzedDataProvider(data);
+    let fastify = new Fastify();
+
+    fastifyCookie(fastify, { secret: provider.consumeString(20) }, () => {});
+
+    switch (provider.consumeIntegralInRange(1, 4)) {
+      case 1:
+        fastify.serializeCookie(provider.consumeRemainingAsString(), provider.consumeRemainingAsString());
+        break;
+      case 2:
+        fastify.signCookie(provider.consumeRemainingAsString());
+        break;
+      case 3:
+        fastify.unsignCookie(provider.consumeRemainingAsString());
+        break;
+      case 4:
+        fastify.parseCookie(provider.consumeRemainingAsString());
+        break;
+    }
+
+    // Invoke garbage collection
+    fastify = null;
+    v8.setFlagsFromString('--expose_gc');
+    const gc = vm.runInNewContext('gc');
+    gc();
+  } catch (error) {
+    if (!ignoredError(error)) throw error;
   }
+};
+
+function ignoredError(error) {
+  return !!ignored.find((message) => error.message.indexOf(message) !== -1);
 }
+
+const ignored = [
+  'argument name is invalid'
+];
