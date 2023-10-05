@@ -18,63 +18,50 @@
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
 const fastifyJwt = require('../fastify-jwt/jwt');
-const generateRandomJson = require('./generator');
 const v8 = require("v8");
 const vm = require("vm");
 
 module.exports.fuzz = function(data) {
-  const provider = new FuzzedDataProvider(data);
-  const choice = provider.consumeIntegralInRange(1, 3);
-  const param = generateRandomJson(data, 5);
-  let fastify = new Fastify();
+  try {
+    const provider = new FuzzedDataProvider(data);
+    const choice = provider.consumeIntegralInRange(1, 3);
+    let fastify = new Fastify();
 
-  fastify.register(fastifyJwt, {
-    secret: 'FuzzSecret'
-  })
+    fastifyJwt(fastify, { secret: 'FuzzSecret' }, () => {});
 
-  fastify.post('/sign', async function (req, reply) {
-    fastify.jwt.sign(param)
-    reply.send('')
-  })
-  fastify.post('/decode', async function (req, reply) {
-    fastify.jwt.decode(param)
-    reply.send('')
-  })
-  fastify.post('/verify', async function (req, reply) {
-    fastify.jwt.verify(param)
-    reply.send('')
-  })
+    let payload = provider.consumeRemainingAsString();
 
-  start_server();
-
-  switch (choice) {
-    case 1:
-      fetch("https://localhost:12345/sign", { method: "POST" });
-      break;
-    case 2:
-      fetch("https://localhost:12345/decode", { method: "POST" });
-      break;
-    case 3:
-      fetch("https://localhost:12345/verify", { method: "POST" });
-      break;
-  }
-
-  stop_server();
-
-  async function start_server() {
-    await fastify.listen(
-      { port: 12345, host: '0.0.0.0'},
-      (err, address) => {}
-    )
-  }
-
-  function stop_server() {
-    fastify.close();
-    fastify = null;
+    if (payload) {
+      switch (choice) {
+        case 1:
+          fastify.jwt.sign(payload);
+          break;
+        case 2:
+          fastify.jwt.verify(payload);
+          break;
+        case 3:
+          fastify.jwt.decode(payload);
+          break;
+      }
+    }
 
     // Invoke garbage collection
+    fastify = null;
+
     v8.setFlagsFromString('--expose_gc');
     const gc = vm.runInNewContext('gc');
     gc();
+  } catch (error) {
+    if (!ignoredError(error)) throw error;
   }
 };
+
+function ignoredError(error) {
+  return !!ignored.find((message) => error.message.indexOf(message) !== -1);
+}
+
+const ignored = [
+  'must be an object',
+  'token is malformed',
+  'token header is not a valid base64url'
+];
