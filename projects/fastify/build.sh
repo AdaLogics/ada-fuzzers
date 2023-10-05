@@ -37,8 +37,8 @@ npm install
 #cd $SRC/fastify-plugin
 #npm install
 
-#cd $SRC/fastify-cookie
-#npm install
+cd $SRC/fastify-cookie
+npm install
 
 cd $SRC/fastify-cors
 npm install
@@ -58,7 +58,7 @@ cp -r $SRC/fastify-auth $OUT/
 cp -r $SRC/fastify-basic-auth $OUT/
 cp -r $SRC/fastify-bearer-auth $OUT/
 #cp -r $SRC/fastify-plugin $OUT/
-#cp -r $SRC/fastify-cookie $OUT/
+cp -r $SRC/fastify-cookie $OUT/
 cp -r $SRC/fastify-cors $OUT/
 #cp -r $SRC/fastify-secure-session $OUT/
 
@@ -69,4 +69,5 @@ compile_javascript_fuzzer fastify fuzz_jwt.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_response_validation.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_basic_auth.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_bearer_auth.js -i fastify --sync
+compile_javascript_fuzzer fastify fuzz_cookie.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_cors.js -i fastify --sync
