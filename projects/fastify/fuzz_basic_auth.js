@@ -21,64 +21,36 @@ const auth = require('../fastify-auth/auth');
 const basic_auth = require('../fastify-basic-auth/index');
 const v8 = require('v8');
 const vm = require('vm');
-const generateRandomJson = require('./generator');
 
 module.exports.fuzz = function(data) {
-  try {
-    const provider = new FuzzedDataProvider(data);
-    const authenticate = generateRandomJson(data, -1);
-    let fastify = new Fastify();
+  const provider = new FuzzedDataProvider(data);
+  let fastify = new Fastify();
+  const authenticate = {realm: 'FuzzRealm'};
 
-
-    // Start the fastify web instance
-    start_server();
-
-    // Create an http request to the fastify web instance
-    fetch("https://localhost:12345/auth", {method: "GET"});
-
-    // Shut down and clean up the fastify web instance
-    stop_server();
-  } catch (error) {
-    if (!ignoredError(error)) throw error;
+  function validate (username, password, req, reply, done) {
+    if (provider.consumeBoolean()) {
+      done();
+    } else {
+      done(new Error('FuzzError'));
+    }
   }
 
-  async function start_server() {
-    async function validate (username, password, req, reply) { return done(); }
+  auth(fastify, {}, () => {});
+  basic_auth(fastify, { validate, authenticate }, () => {});
 
-    // Register the fastify-auth and fastify-basic-auth plugin
-    fastify
-      .register(auth)
-      .register(basic_auth, {validate, authenticate})
-      .after(() => {
-        // Add preHandler hook to activate the basic auth plugin through the auth plugin
-        fastify.addHook('preHandler', fastify.auth([fastify.basicAuth]));
-        // Set /auth request string route and activate the basic auth plugin
-        fastify.route({
-          method: 'GET',
-          url: '/auth',
-          onRequest: fastify.auth([fastify.basicAuth]),
-          handler: async (req, reply) => {
-            return generateRandomJson(data, 5);
-          }
-        });
-      });
-
-    await fastify.listen({port: 12345, host: "0.0.0.0"});
+  if (typeof fastify.basicAuth === 'function') {
+    let request = {
+      headers: {authorization: provider.consumeRemainingAsString()}
+    }
+    let reply = {
+      header: (a, b) => {},
+    }
+    fastify.basicAuth(request, reply, () => {});
   }
 
-  async function stop_server() {
-    await fastify.close();
-    fastify = null;
-
-    // Invoke garbage collection
-    v8.setFlagsFromString('--expose_gc');
-    const gc = vm.runInNewContext('gc');
-    gc();
-  }
-};
-
-function ignoredError(error) {
-  return !!ignored.find((message) => error.message.indexOf(message) !== -1);
+  // Invoke garbage collection
+  fastify = null;
+  v8.setFlagsFromString('--expose_gc');
+  const gc = vm.runInNewContext('gc');
+  gc();
 }
-
-const ignored = ['not a function'];

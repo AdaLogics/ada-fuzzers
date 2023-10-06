@@ -17,64 +17,37 @@
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
-const auth = require('../fastify-auth/auth');
 const bearer_auth = require('../fastify-bearer-auth/index');
-const generateRandomJson = require('./generator');
 const v8 = require('v8');
 const vm = require('vm');
 
 module.exports.fuzz = function(data) {
-  try {
-    const provider = new FuzzedDataProvider(data);
-    let fastify = new Fastify();
+  const provider = new FuzzedDataProvider(data);
+  let fastify = new Fastify();
 
-    // Start the fastify web instance
-    start_server();
+  bearer_auth(fastify, {
+    addHook: false,
+    verifyErrorLogLevel: false,
+    auth: (a, b) => { return provider.consumeBoolean(); }
+  }, () => {});
 
-    // Create http request to the fastify web instance
-    fetch("https://localhost:12345/auth", { method: "GET" });
-
-    // Shut down and clean up the fastify web instance
-    stop_server();
-
-    async function start_server() {
-      // Register the fastify-auth and fastify-bearer-auth plugin
-      await fastify
-        .register(auth)
-        .register(bearerAuthPlugin, generateRandomJson(data, 1))
-        .after(() => {
-          // Add preHandler hook to activate the bearer auth plugin through the auth plugin
-          fastify.addHook('preHandler', fastify.auth([fastify.verifyBearerAuth]));
-          // Set /auth request string route and activate the bearer auth plugin
-          fastify.route({
-            method: 'GET',
-            url: '/auth',
-            onRequest: fastify.auth([fastify.verifyBearerAuth]),
-            handler: async (req, reply) => {
-              return generateRandomJson(data, 5);
-            }
-          });
-        });
-
-      await fastify.listen({port: 12345}, (err) => {});
+  if (typeof fastify.verifyBearerAuth === 'function') {
+    let request = {
+      raw: {headers: {authorization: provider.consumeRemainingAsString()}}
     }
-
-    function stop_server() {
-      fastify.close();
-      fastify = null;
-
-      // Invoke garbage collection
-      v8.setFlagsFromString('--expose_gc');
-      const gc = vm.runInNewContext('gc');
-      gc();
+    let reply = {
+      header: (a, b) => { done(); },
+      code: (a) => { done(); },
+      send: (a) => { done(); },
     }
-  } catch (error) {
-    if (!ignoredError(error)) throw error;
+    if (request.raw.headers.authorization) {
+      fastify.verifyBearerAuth(request, reply, () => {});
+    }
   }
-};
 
-function ignoredError(error) {
-  return !!ignored.find((message) => error.message.indexOf(message) !== -1);
+  // Invoke garbage collection
+  fastify = null;
+  v8.setFlagsFromString('--expose_gc');
+  const gc = vm.runInNewContext('gc');
+  gc();
 }
-
-const ignored = ['not a function'];
