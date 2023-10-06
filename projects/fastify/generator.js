@@ -66,7 +66,7 @@ const generateRandomJson = (data, max_depth, object = false) => {
 
   function randomString() {
     // Generate random string with at most all of the remaining bytes
-    return provider.consumeString(provider.remainingBytes());
+    return provider.consumeRemainingAsString();
   }
 
   function randomBoolean() {

@@ -17,7 +17,8 @@
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
-const bearer_auth = require('../fastify-bearer-auth/index');
+const fp = require('../fastify-plugin');
+const { fastifySecureSession } = require('../fastify-secure-session/index.js');
 const v8 = require('v8');
 const vm = require('vm');
 
@@ -25,23 +26,34 @@ module.exports.fuzz = function(data) {
   const provider = new FuzzedDataProvider(data);
   let fastify = new Fastify();
 
-  bearer_auth(fastify, {
-    addHook: false,
-    verifyErrorLogLevel: false,
-    auth: (a, b) => { return provider.consumeBoolean(); }
-  }, () => {});
+  let secureSession = fp(fastifySecureSession, {
+    fastify: '4.x',
+    name: provider.consumeString(20)
+  })
 
-  if (typeof fastify.verifyBearerAuth === 'function') {
-    let request = {
-      raw: {headers: {authorization: provider.consumeRemainingAsString()}}
+  if (provider.consumeBoolean()) {
+    secureSession(fastify, {
+      sessionName: 'session',
+      cookieName: 'session',
+      secret: provider.consumeString(32),
+      cookie: { path: '/' }
+    }, () => {});
+  } else {
+    secureSession(fastify, {
+      sessionName: 'session',
+      cookieName: 'session',
+      key: provider.consumeString(32),
+      cookie: { path: '/' }
+    }, () => {});
+  }
+
+  if (provider.consumeBoolean()) {
+    if (typeof fastify.decodeSecureSession === 'function') {
+      fastify.decodeSecureSession(provider.consumeRemainingAsString());
     }
-    let reply = {
-      header: (a, b) => { done(); },
-      code: (a) => { done(); },
-      send: (a) => { done(); },
-    }
-    if (request.raw.headers.authorization) {
-      fastify.verifyBearerAuth(request, reply, () => {});
+  } else {
+    if (typeof fastify.createSecureSession === 'function') {
+      fastify.encodeSecureSession(fastify.createSecureSession(provider.consumeRemainingAsString()));
     }
   }
 
@@ -50,4 +62,5 @@ module.exports.fuzz = function(data) {
   v8.setFlagsFromString('--expose_gc');
   const gc = vm.runInNewContext('gc');
   gc();
-}
+};
+

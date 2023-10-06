@@ -17,42 +17,52 @@
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
-const fastifyJwt = require('../fastify-jwt/jwt');
-const v8 = require("v8");
-const vm = require("vm");
+const { parse, createAddFieldnameToVary } = require('../fastify-cors/vary');
+const cors = require('../fastify-cors/index');
+const v8 = require('v8');
+const vm = require('vm');
 
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
-    const choice = provider.consumeIntegralInRange(1, 3);
     let fastify = new Fastify();
 
-    fastifyJwt(fastify, { secret: 'FuzzSecret' }, () => {});
+    // Start the fastify web instance
+    start_server();
 
-    let payload = provider.consumeRemainingAsString();
-
-    if (payload) {
-      switch (choice) {
-        case 1:
-          fastify.jwt.sign(payload);
-          break;
-        case 2:
-          fastify.jwt.verify(payload);
-          break;
-        case 3:
-          fastify.jwt.decode(payload);
-          break;
+    // Create an http request to the fastify web instance
+    fetch("https://localhost:12345/", {
+      method: "GET",
+      headers: {
+        'Origin': provider.consumeString(provider.remainingBytes() / 2)
       }
-    }
+    });
 
-    // Invoke garbage collection
+    // Shut down and clean up the fastify web instance
+    stop_server();
+  } catch (error) {
+    if (!ignoredError(error)) throw error;
+  }
+
+  async function start_server() {
+    fastify.register(cors, {origin: "/" + provider.consumeString(100) + "/i"}); 
+
+    fastify.get('/', opts, (request, reply) => {
+      parse(provider.consumeString(provider.remainingBytes() / 2));
+      createAddFieldnameToVary(provider.consumeString(provider.remainingBytes() / 2))(reply);
+    });
+
+    await fastify.listen({port: 12345, host: "0.0.0.0"});
+  }
+
+  async function stop_server() {
+    await fastify.close();
     fastify = null;
 
+    // Invoke garbage collection
     v8.setFlagsFromString('--expose_gc');
     const gc = vm.runInNewContext('gc');
     gc();
-  } catch (error) {
-    if (!ignoredError(error)) throw error;
   }
 };
 
@@ -60,8 +70,4 @@ function ignoredError(error) {
   return !!ignored.find((message) => error.message.indexOf(message) !== -1);
 }
 
-const ignored = [
-  'must be an object',
-  'token is malformed',
-  'token header is not a valid base64url'
-];
+const ignored = ['not a function'];

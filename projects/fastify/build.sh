@@ -34,9 +34,21 @@ npm install
 cd $SRC/fastify-bearer-auth
 npm install
 
+#cd $SRC/fastify-plugin
+#npm install
+
+cd $SRC/fastify-cookie
+npm install
+
+cd $SRC/fastify-cors
+npm install
+
+#cd $SRC/fastify-secure-session
+#npm install
+
 cd $SRC/fastify
 npm install
-npm install --save-dev @jazzer.js/core
+npm install -g @jazzer.js/core
 
 # Copy Fasity plugin
 cp -r $SRC/fast-json-stringify $OUT/
@@ -45,6 +57,10 @@ cp -r $SRC/fastify-response-validation $OUT/
 cp -r $SRC/fastify-auth $OUT/
 cp -r $SRC/fastify-basic-auth $OUT/
 cp -r $SRC/fastify-bearer-auth $OUT/
+#cp -r $SRC/fastify-plugin $OUT/
+cp -r $SRC/fastify-cookie $OUT/
+cp -r $SRC/fastify-cors $OUT/
+#cp -r $SRC/fastify-secure-session $OUT/
 
 ## Build Fuzzers.
 compile_javascript_fuzzer fastify fuzz_main.js -i fastify --sync
@@ -53,3 +69,5 @@ compile_javascript_fuzzer fastify fuzz_jwt.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_response_validation.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_basic_auth.js -i fastify --sync
 compile_javascript_fuzzer fastify fuzz_bearer_auth.js -i fastify --sync
+compile_javascript_fuzzer fastify fuzz_cookie.js -i fastify --sync
+compile_javascript_fuzzer fastify fuzz_cors.js -i fastify --sync

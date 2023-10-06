@@ -17,37 +17,34 @@
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
-const fastifyJwt = require('../fastify-jwt/jwt');
-const v8 = require("v8");
-const vm = require("vm");
+const { fastifyCookie } = require('../fastify-cookie/plugin.js');
+const v8 = require('v8');
+const vm = require('vm');
 
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
-    const choice = provider.consumeIntegralInRange(1, 3);
     let fastify = new Fastify();
 
-    fastifyJwt(fastify, { secret: 'FuzzSecret' }, () => {});
+    fastifyCookie(fastify, { secret: provider.consumeString(20) }, () => {});
 
-    let payload = provider.consumeRemainingAsString();
-
-    if (payload) {
-      switch (choice) {
-        case 1:
-          fastify.jwt.sign(payload);
-          break;
-        case 2:
-          fastify.jwt.verify(payload);
-          break;
-        case 3:
-          fastify.jwt.decode(payload);
-          break;
-      }
+    switch (provider.consumeIntegralInRange(1, 4)) {
+      case 1:
+        fastify.serializeCookie(provider.consumeRemainingAsString(), provider.consumeRemainingAsString());
+        break;
+      case 2:
+        fastify.signCookie(provider.consumeRemainingAsString());
+        break;
+      case 3:
+        fastify.unsignCookie(provider.consumeRemainingAsString());
+        break;
+      case 4:
+        fastify.parseCookie(provider.consumeRemainingAsString());
+        break;
     }
 
     // Invoke garbage collection
     fastify = null;
-
     v8.setFlagsFromString('--expose_gc');
     const gc = vm.runInNewContext('gc');
     gc();
@@ -61,7 +58,5 @@ function ignoredError(error) {
 }
 
 const ignored = [
-  'must be an object',
-  'token is malformed',
-  'token header is not a valid base64url'
+  'argument name is invalid'
 ];
