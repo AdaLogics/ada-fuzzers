@@ -19,19 +19,24 @@ const { FuzzedDataProvider } = require('@jazzer.js/core');
 const generateRandomJson = require('./generator');
 const fastJson = require('../fast-json-stringify/index')
 const Location = require('../fast-json-stringify/lib/location');
+const SchemaValidator = require('../fast-json-stringify/lib/schema-validator');
+const Serializer = require('../fast-json-stringify/lib/serializer');
 const Validator = require('../fast-json-stringify/lib/validator');
 
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
+    const choice = provider.consumeIntegralInRange(1, 19);
     const location = new Location();
+    const serializer = new Serializer();
     const validator = new Validator();
-    const stringify = fastJson(generateRandomJson(provider.consumeBytes(provider.remainingBytes()), 5));
-    const json = generateRandomJson(Buffer.from(provier.consumeRemaningAsBytes()), 5, true);
+    const string = provider.consumeRemainingAsString();
+    const bytes = new TextEncoder().encode(string);
+    const json = generateRandomJson(Buffer.from(bytes), 5, true);
 
-    switch (provider.consumeIntegralInRange(1, 7)) {
+    switch (choice) {
       case 1:
-        validator.validate(json);
+        validator.validate(json, json);
         break;
       case 2:
         validator.addSchema(json, '');
@@ -43,13 +48,49 @@ module.exports.fuzz = function(data) {
         Validator.restoreFromState(json);
         break;
       case 5:
-        location.getPropertyLocation(provider.consumeRemainingAsString());
+        location.getPropertyLocation(string);
         break;
       case 6:
-        location.addMergedSchema(json, provider.consumeRemainingAsString());
+        location.addMergedSchema(json, string);
         break;
       case 7:
-        stringify(fastJson(generateRandomJson(provider.consumeRemainingAsBytes(), 5)));
+        SchemaValidator(json);
+        break;
+      case 8:
+        SchemaValidator(bytes);
+        break;
+      case 9:
+        SchemaValidator(string);
+        break;
+      case 10:
+        serializer.asInteger(string);
+        break;
+      case 11:
+        serializer.asNumber(string);
+        break;
+      case 12:
+        serializer.asBoolean(string);
+        break;
+      case 13:
+        serializer.asDateTime(string);
+        break;
+      case 14:
+        serializer.asDate(string);
+        break;
+      case 15:
+        serializer.asTime(string);
+        break;
+      case 16:
+        serializer.asString(string);
+        break;
+      case 17:
+        serializer.asStringSmall(string);
+        break;
+      case 18:
+        Serializer.restoreFromState(json);
+        break;
+      case 19:
+        fastJson(json)();
         break;
     }
   } catch (error) {
@@ -65,6 +106,5 @@ const ignored = [
   'schema is invalid',
   'Cannot read properties',
   'undefined or null',
-  'cannot be converted',
-  'not a function'
+  'cannot be converted'
 ];
