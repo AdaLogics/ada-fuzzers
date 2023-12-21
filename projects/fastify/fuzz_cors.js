@@ -17,52 +17,58 @@
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
-const { parse, createAddFieldnameToVary } = require('../fastify-cors/vary');
-const cors = require('../fastify-cors/index');
+const Vary = require('../fastify-cors/vary');
+const Cors = require('../fastify-cors/index');
 const v8 = require('v8');
 const vm = require('vm');
 
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
+    const isArray = provider.consumeBoolean();
+    const choice = provider.consumeIntegralInRange(1, 5);
+    const payload = provider.consumeRemainingAsString();
     let fastify = new Fastify();
 
-    // Start the fastify web instance
-    start_server();
+    // Initialise fake header and reply
+    let header = new Object();
+    const reply = new Object();
 
-    // Create an http request to the fastify web instance
-    fetch("https://localhost:12345/", {
-      method: "GET",
-      headers: {
-        'Origin': provider.consumeString(provider.remainingBytes() / 2)
-      }
-    });
+    if (isArray) {
+      header = [payload, payload];
+    } else {
+      header = payload;
+    }
 
-    // Shut down and clean up the fastify web instance
-    stop_server();
-  } catch (error) {
-    if (!ignoredError(error)) throw error;
-  }
+    reply.getHeader = (a) => {return header;};
+    reply.header = (a, b) => {};
 
-  async function start_server() {
-    fastify.register(cors, {origin: "/" + provider.consumeString(100) + "/i"}); 
-
-    fastify.get('/', opts, (request, reply) => {
-      parse(provider.consumeString(provider.remainingBytes() / 2));
-      createAddFieldnameToVary(provider.consumeString(provider.remainingBytes() / 2))(reply);
-    });
-
-    await fastify.listen({port: 12345, host: "0.0.0.0"});
-  }
-
-  async function stop_server() {
-    await fastify.close();
-    fastify = null;
+    switch (choice) {
+      case 1:
+        Cors(fastify, null, () => {});
+        break;
+      case 2:
+        Vary.createAddFieldnameToVary(payload)(reply);
+        break;
+      case 3:
+        Vary.addOriginToVaryHeader()(reply);
+        break;
+      case 4:
+        Vary.addAccessControlRequestHeadersToVaryHeader()(reply);
+        break;
+      case 5:
+        Vary.parse(payload);
+        break;
+    }
 
     // Invoke garbage collection
+    fastify = null;
+
     v8.setFlagsFromString('--expose_gc');
     const gc = vm.runInNewContext('gc');
     gc();
+  } catch (error) {
+    if (!ignoredError(error)) throw error;
   }
 };
 
@@ -70,4 +76,7 @@ function ignoredError(error) {
   return !!ignored.find((message) => error.message.indexOf(message) !== -1);
 }
 
-const ignored = ['not a function'];
+const ignored = [
+  'Cannot read properties',
+  'contains invalid characters'
+];
