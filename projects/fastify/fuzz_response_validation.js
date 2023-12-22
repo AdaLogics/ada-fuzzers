@@ -20,35 +20,63 @@ const Fastify = require('./fastify');
 const validation = require('../fastify-response-validation/index');
 const v8 = require('v8');
 const vm = require('vm');
-const generateRandomJson = require('./generator');
 
 module.exports.fuzz = function(data) {
-  const provider = new FuzzedDataProvider(data);
-  let fastify = new Fastify();
+  try {
+    const fastify_schema = {
+      OSS: { type: 'number' },
+      Fuzz: { type: 'string' }
+    };
+    const provider = new FuzzedDataProvider(data);
+    let fastify = Fastify();
+    validation(fastify, {}, () => {});
 
-  fastify.register(validation);
+    const key = Reflect.ownKeys(fastify)
+      .find(key => key.toString() === 'Symbol(fastify.hooks)')
 
-  // Set validation route
-  var fastify_schema = generateRandomJson(data, 5);
-  fastify.route({
-    method: 'GET',
-    path: '/',
-    schema: fastify_schema,
-    handler: async (req, reply) => {
-      return generateRandomJson(data, -1);
-    }
-  })
+    const routeOpts = new Object();
+    const schema = new Object();
+    const response = new Object();
+    const content = new Object();
+    const media = new Object();
+    const innerSchema = new Object();
+    innerSchema.schema = fastify_schema;
+    media['OSS-Fuzz'] = innerSchema;
+    content.content = media
+    response[200] = content;
+    schema.response = response;
+    routeOpts.responseValidation = true;
+    routeOpts.responseStatusCodeValidation  = provider.consumeBoolean();
+    routeOpts.schema = schema;
 
-  fastify.inject({
-    method: 'GET',
-    path: '/'
-  }, (err, res) => {});
+    fastify[key].onRoute[0](routeOpts);
 
-  fastify.close();
-  fastify = null;
+    const reply = new Object();
+    reply.statusCode = provider.consumeIntegralInRange(100, 999);
+    reply.getHeader = (a) => { return 'OSS-Fuzz' };
+    reply.code = (a) => {};
 
-  // Invoke garbage collection
-  v8.setFlagsFromString('--expose_gc');
-  const gc = vm.runInNewContext('gc');
-  gc();
+    routeOpts.preSerialization[0](
+      null, reply, provider.consumeRemainingAsString(), () => {}
+    );
+
+    fastify.close();
+    fastify = null;
+
+    // Invoke garbage collection
+    v8.setFlagsFromString('--expose_gc');
+    const gc = vm.runInNewContext('gc');
+    gc();
+  } catch (error) {
+    if (!ignoredError(error)) throw error;
+  }
 };
+
+function ignoredError(error) {
+  return !!ignored.find((message) => error.message.indexOf(message) !== -1);
+}
+
+const ignored = [
+  'Cannot read properties',
+  'schema is invalid'
+];
