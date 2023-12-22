@@ -34,6 +34,9 @@ npm install
 cd $SRC/fastify-cookie
 npm install
 
+cd $SRC/fast-content-type-parse
+npm install
+
 cd $SRC/fastify-basic-auth
 npm install
 
@@ -59,11 +62,12 @@ cp -r $SRC/fastify-jwt $OUT/
 cp -r $SRC/fastify-cors $OUT/
 cp -r $SRC/fastify-response-validation $OUT/
 cp -r $SRC/secure-json-parse $OUT/
+cp -r $SRC/fastify-cookie $OUT/
+cp -r $SRC/fast-content-type-parse $OUT/
 cp -r $SRC/fastify-auth $OUT/
 cp -r $SRC/fastify-basic-auth $OUT/
 cp -r $SRC/fastify-bearer-auth $OUT/
 cp -r $SRC/fastify-plugin $OUT/
-cp -r $SRC/fastify-cookie $OUT/
 cp -r $SRC/fastify-secure-session $OUT/
 
 
@@ -73,8 +77,8 @@ compile_javascript_fuzzer fastify fuzz_jwt.js -i fastify-jwt --sync
 compile_javascript_fuzzer fastify fuzz_cors.js -i fastify-cors --sync
 compile_javascript_fuzzer fastify fuzz_response_validation.js -i fastify-response-validation --sync
 compile_javascript_fuzzer fastify fuzz_cookie.js -i fastify-cookie --sync
+compile_javascript_fuzzer fastify fuzz_ct_parse.js -i fast-content-type-parse --sync
+compile_javascript_fuzzer fastify fuzz_auth.js -i fastify-auth --sync
 
 ### Temporary broken fuzzers
-compile_javascript_fuzzer fastify fuzz_basic_auth.js -i fastify-basic-auth --sync
-compile_javascript_fuzzer fastify fuzz_bearer_auth.js -i fastify-bearer-auth --sync
 compile_javascript_fuzzer fastify fuzz_secure_session.js -i fastify-secure-session --sync
