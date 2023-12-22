@@ -18,7 +18,7 @@
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
 const fp = require('../fastify-plugin');
-const { fastifySecureSession } = require('../fastify-secure-session/index.js');
+const fastifySecureSession = require('../fastify-secure-session/index.js');
 const v8 = require('v8');
 const vm = require('vm');
 
@@ -35,26 +35,47 @@ module.exports.fuzz = function(data) {
     secureSession(fastify, {
       sessionName: 'session',
       cookieName: 'session',
-      secret: provider.consumeString(32),
+      secret: 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFHIKLMNOPQRS',
       cookie: { path: '/' }
     }, () => {});
   } else {
-    secureSession(fastify, {
+    let ret = secureSession(fastify, {
       sessionName: 'session',
       cookieName: 'session',
-      key: provider.consumeString(32),
+      key: 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFHIKLMNOPQRS',
       cookie: { path: '/' }
     }, () => {});
   }
 
-  if (provider.consumeBoolean()) {
-    if (typeof fastify.decodeSecureSession === 'function') {
-      fastify.decodeSecureSession(provider.consumeRemainingAsString());
-    }
-  } else {
-    if (typeof fastify.createSecureSession === 'function') {
-      fastify.encodeSecureSession(fastify.createSecureSession(provider.consumeRemainingAsString()));
-    }
+  const choice = provider.consumeIntegralInRange(1, 3);
+  const payload = provider.consumeRemainingAsString();
+  const key = Reflect.ownKeys(fastify)
+    .find(key => key.toString() === 'Symbol(fastify.hooks)')
+
+  const req = new Object();
+  const reply = new Object();
+  const cookies = new Object();
+  reply.setCookie = (a, b, c) => {};
+  cookies['session'] = payload;
+  req.cookies = cookies
+
+  switch (choice) {
+    case 1:
+      if (typeof fastify.decodeSecureSession === 'function') {
+        fastify.decodeSecureSession(payload);
+      }
+      break;
+    case 2:
+      if (typeof fastify.encodeSecureSession === 'function') {
+        fastify.encodeSecureSession(fastify.createSecureSession(payload));
+      }
+      break;
+    case 3:
+      if (typeof fastify[key].onRequest[0] === 'function') {
+        fastify[key].onRequest[0](req, reply, () => {});
+        fastify[key].onReply[0](req, reply, payload, () => {});
+      }
+      break;
   }
 
   // Invoke garbage collection

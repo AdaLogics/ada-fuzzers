@@ -79,6 +79,4 @@ compile_javascript_fuzzer fastify fuzz_response_validation.js -i fastify-respons
 compile_javascript_fuzzer fastify fuzz_cookie.js -i fastify-cookie --sync
 compile_javascript_fuzzer fastify fuzz_ct_parse.js -i fast-content-type-parse --sync
 compile_javascript_fuzzer fastify fuzz_auth.js -i fastify-auth --sync
-
-### Temporary broken fuzzers
 compile_javascript_fuzzer fastify fuzz_secure_session.js -i fastify-secure-session --sync
