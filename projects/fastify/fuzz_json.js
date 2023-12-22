@@ -22,11 +22,12 @@ const Location = require('../fast-json-stringify/lib/location');
 const SchemaValidator = require('../fast-json-stringify/lib/schema-validator');
 const Serializer = require('../fast-json-stringify/lib/serializer');
 const Validator = require('../fast-json-stringify/lib/validator');
+const { parse, safeParse, scan } = require('../secure-json-parse/index');
 
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
-    const choice = provider.consumeIntegralInRange(1, 19);
+    const choice = provider.consumeIntegralInRange(1, 22);
     const location = new Location();
     const serializer = new Serializer();
     const validator = new Validator();
@@ -92,9 +93,20 @@ module.exports.fuzz = function(data) {
       case 19:
         fastJson(json)();
         break;
+      case 20:
+        parse(string);
+        break;
+      case 21:
+        safeParse(string);
+        break;
+      case 22:
+        scan(json);
+        break;
     }
   } catch (error) {
-    if (!ignoredError(error)) throw error;
+    if (!(error instanceof SyntaxError)) {
+      if (!ignoredError(error)) throw error;
+    }
   }
 };
 
@@ -106,5 +118,7 @@ const ignored = [
   'schema is invalid',
   'Cannot read properties',
   'undefined or null',
-  'cannot be converted'
+  'cannot be converted',
+  'type must be JSONType',
+  'NOT SUPPORTED'
 ];

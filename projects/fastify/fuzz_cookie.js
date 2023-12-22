@@ -16,38 +16,37 @@
 'use strict'
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
-const Fastify = require('./fastify');
-const { fastifyCookie } = require('../fastify-cookie/plugin.js');
-const v8 = require('v8');
-const vm = require('vm');
+const { parse, serialize } = require('../fastify-cookie/cookie');
+const { sign, unsign, Signer } = require('../fastify-cookie/signer');
 
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
-    let fastify = new Fastify();
+    const choice = provider.consumeIntegralInRange(1, 6);
+    const secret = provider.consumeString(64);
+    const payload = provider.consumeRemainingAsString();
 
-    fastifyCookie(fastify, { secret: provider.consumeString(20) }, () => {});
-
-    switch (provider.consumeIntegralInRange(1, 4)) {
+    switch (choice) {
       case 1:
-        fastify.serializeCookie(provider.consumeRemainingAsString(), provider.consumeRemainingAsString());
+        Signer([secret]).sign(payload);
         break;
       case 2:
-        fastify.signCookie(provider.consumeRemainingAsString());
+        Signer([secret]).unsign(payload);
         break;
       case 3:
-        fastify.unsignCookie(provider.consumeRemainingAsString());
+        sign(payload, secret);
         break;
       case 4:
-        fastify.parseCookie(provider.consumeRemainingAsString());
+        unsign(payload, secret);
+        break;
+      case 5:
+        parse(payload);
+        break;
+      case 6:
+        serialize(secret, payload);
         break;
     }
 
-    // Invoke garbage collection
-    fastify = null;
-    v8.setFlagsFromString('--expose_gc');
-    const gc = vm.runInNewContext('gc');
-    gc();
   } catch (error) {
     if (!ignoredError(error)) throw error;
   }
@@ -58,5 +57,11 @@ function ignoredError(error) {
 }
 
 const ignored = [
-  'argument name is invalid'
+  'Cookie value must be provided as a string',
+  'Signed cookie string must be provided',
+  'not supported',
+  'Secret key must be a string or Buffer',
+  'Invalid digest',
+  'argument name is invalid',
+  'argument val is invalid'
 ];
