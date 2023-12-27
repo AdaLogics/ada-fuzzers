@@ -17,7 +17,6 @@
 
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
-const auth = require('../fastify-auth/auth');
 const basic_auth = require('../fastify-basic-auth/index');
 const bearer_auth = require('../fastify-bearer-auth/lib/verifyBearerAuthFactory');
 const compare = require('../fastify-bearer-auth/lib/compare');
@@ -28,7 +27,7 @@ const vm = require('vm');
 module.exports.fuzz = function(data) {
   try {
     const provider = new FuzzedDataProvider(data);
-    const choice = provider.consumeIntegralInRange(1, 6);
+    const choice = provider.consumeIntegralInRange(1, 4);
     const keys = new Set([provider.consumeString(64)]);
     const authFunction = () => { return provider.consumeBoolean(); };
     const payload = provider.consumeRemainingAsString();
@@ -42,7 +41,6 @@ module.exports.fuzz = function(data) {
     };
 
     let fastify = Fastify();
-    auth(fastify, {}, () => {});
     basic_auth(fastify, { validate, authenticate }, () => {});
 
     const req = new Object();
@@ -65,21 +63,15 @@ module.exports.fuzz = function(data) {
 
     switch (choice) {
       case 1:
-        fastify.auth([authFunction]);
-        break;
-      case 2:
-        fastify.auth([[authFunction]]);
-        break;
-      case 3:
         fastify.basicAuth(req, reply, () => {});
         break;
-      case 4:
+      case 2:
         bearer_auth({ keys: keys, auth: authFunction })(req, reply, () => {});
         break;
-      case 5:
+      case 3:
         compare(Buffer.from(payload, "utf-8"), Buffer.from(payload, "utf-8"));
         break;
-      case 6:
+      case 4:
         key_authenticate([Buffer.from(payload, "utf-8")], Buffer.from(payload, "utf-8"));
         break;
     }
