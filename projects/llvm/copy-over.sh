@@ -6,4 +6,3 @@ ADA_SRC=$SRC/ada-fuzzers/projects/llvm/
 LLVM_DST=$SRC/llvm-project
 
 cp -rf $ADA_SRC/llvm-parse-assembly-fuzzer $LLVM_DST/llvm/tools/llvm-parse-assembly-fuzzer
-cp $ADA_SRC/FuzzMutatePatch/FuzzerCLI.cpp $LLVM_DST/llvm/lib/FuzzMutate/FuzzerCLI.cpp
