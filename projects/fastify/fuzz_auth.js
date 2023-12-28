@@ -51,11 +51,13 @@ module.exports.fuzz = function(data) {
 
     const bearer_header = new Object();
     const raw_header = new Object();
-    const raw = new Object();
     bearer_header.authorization = payload;
     raw_header.headers = bearer_header;
-    raw.raw = raw_header;
-    req.raw = raw;
+    req.raw = raw_header;
+
+    const log = new Object();
+    log['error'] = (a, b) => {};
+    req.log = log;
 
     reply.header = (a, b) => {};
     reply.code = (a) => {};
@@ -93,6 +95,5 @@ function ignoredError(error) {
 }
 
 const ignored = [
-  'Cannot read properties',
-  'schema is invalid'
+  ''
 ];
