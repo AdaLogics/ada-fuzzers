@@ -18,7 +18,7 @@
 const { FuzzedDataProvider } = require('@jazzer.js/core');
 const Fastify = require('./fastify');
 const basic_auth = require('../fastify-basic-auth/index');
-const bearer_auth = require('../fastify-bearer-auth/lib/verifyBearerAuthFactory');
+const bearer_auth = require('../fastify-bearer-auth/lib/verify-bearer-auth-factory');
 const compare = require('../fastify-bearer-auth/lib/compare');
 const key_authenticate = require('../fastify-bearer-auth/lib/authenticate');
 const v8 = require('v8');
