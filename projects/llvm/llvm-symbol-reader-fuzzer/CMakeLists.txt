@@ -1,0 +1,10 @@
+set(LLVM_LINK_COMPONENTS
+  Core
+  Coverage
+  ProfileData
+  Support
+  Object
+)
+add_llvm_fuzzer(llvm-symbol-reader-fuzzer
+  llvm-symbol-reader-fuzzer.cpp
+)

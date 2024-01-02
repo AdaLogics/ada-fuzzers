@@ -6,3 +6,4 @@ ADA_SRC=$SRC/ada-fuzzers/projects/llvm/
 LLVM_DST=$SRC/llvm-project
 
 cp -rf $ADA_SRC/llvm-parse-assembly-fuzzer $LLVM_DST/llvm/tools/llvm-parse-assembly-fuzzer
+cp -rf $ADA_SRC/llvm-symbol-reader-fuzzer $LLVM_DST/llvm/tools/llvm-symbol-reader-fuzzer
