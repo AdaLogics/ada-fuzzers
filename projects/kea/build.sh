@@ -16,7 +16,7 @@
 ################################################################################
 
 # Copy key fuzzers/dict/seeds
-cp -r $SRC/ada-fuzzers/projects/kea $SRC/kea-fuzzer
+mv -r $SRC/ada-fuzzers/projects/kea $SRC/kea-fuzzer
 
 # Compile log4cplus
 cd $SRC/log4cplus
@@ -61,7 +61,8 @@ HOOKLIBS=$(find $BUILD_BASEDIR/hooks -type f -name '*.a' -print)
 KEA_STATIC_LIBS="/usr/lib/liblog4cplus.a libkea.a $HOOKLIBS "
 KEA_STATIC_LIBS+=$(find $BUILD_BASEDIR/bin \( -path '/src/kea/build/src/bin/dhcp4/*' -o -path '/src/kea/build/src/bin/dhcp6/*' \) -prune -o -type f -name '*.a' -print)
 
-INCLUDES="-I. -I$SRC -Isrc -Ibuild -Isrc/lib -Isrc/bin -Isrc/hooks -I/usr/include/postgresql -Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -I/usr/include/mariadb -Isrc/hooks/d2 -Isrc/hooks/d2/gss_tsig"
+INCLUDES="-I. -I$SRC -I$SRC/kea-fuzzer -Isrc -Ibuild -Isrc/lib -Isrc/bin -Isrc/hooks -Isrc/hooks/d2 -Isrc/hooks/d2/gss_tsig "
+INCLUDES+="-Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -I/usr/include/postgresql -I/usr/include/mariadb"
 LIBS="-lpthread -ldl -lm -lc++ -lc++abi -lssl -lcrypto -lkrb5 -lgssapi_krb5"
 export CXXFLAGS="${CXXFLAGS} -std=c++17 -stdlib=libc++ -Wno-unused-parameter -Wno-unused-value"
 
