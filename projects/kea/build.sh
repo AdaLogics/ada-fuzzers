@@ -15,9 +15,6 @@
 #
 ################################################################################
 
-# Copy key fuzzers/dict/seeds
-mv -r $SRC/ada-fuzzers/projects/kea $SRC/kea-fuzzer
-
 # Compile log4cplus
 cd $SRC/log4cplus
 ./configure --prefix=/usr --enable-static --disable-shared --with-pic
