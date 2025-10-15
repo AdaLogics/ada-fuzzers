@@ -71,7 +71,7 @@ do
     $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}"
 
   if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
-    cp $SRC/${fuzzer}.dict $OUT
+    cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT
   fi
 done
 
@@ -96,7 +96,7 @@ do
       $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}${DHCPVER}"
 
     if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
-      cp $SRC/${fuzzer}.dict $OUT/${fuzzer}${DHCPVER}.dict
+      cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT/${fuzzer}${DHCPVER}.dict
     fi
   done
 done
