@@ -110,5 +110,5 @@ zip -j $OUT/fuzz_d2_seed_corpus.zip $SRC/kea/src/bin/d2/tests/testdata/*.json
 
 # Prepare for base databse file
 mkdir -p $OUT/var/lib/kea/
-touch /out/var/lib/kea/kea-leases4.csv
-touch /out/var/lib/kea/kea-leases6.csv
+touch $OUT/var/lib/kea/kea-leases4.csv
+touch $OUT/var/lib/kea/kea-leases6.csv
