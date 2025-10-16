@@ -35,12 +35,20 @@
 
 #include "helper_func.h"
 
+namespace fs = std::filesystem;
 using namespace isc::dhcp;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 236) {
         // package size requires at least 236 bytes
         return 0;
+    }
+
+    // Prepare the least storage directory required by the Pkt constructor
+    try {
+        fs::create_directories("var/lib/kea");
+    } catch (...) {
+        // Early exit if the directory is failed to create
     }
 
     // Initialise logging

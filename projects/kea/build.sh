@@ -107,8 +107,3 @@ zip -j $OUT/fuzz_dhcp_parser4_seed_corpus.zip $SRC/kea-fuzzer/corp/*.json
 zip -j $OUT/fuzz_dhcp_parser6_seed_corpus.zip $SRC/kea-fuzzer/corp/*.json
 zip -j $OUT/fuzz_agent_seed_corpus.zip $SRC/kea/src/bin/agent/tests/testdata/*.json
 zip -j $OUT/fuzz_d2_seed_corpus.zip $SRC/kea/src/bin/d2/tests/testdata/*.json
-
-# Prepare for base databse file
-mkdir -p $OUT/var/lib/kea/
-touch $OUT/var/lib/kea/kea-leases4.csv
-touch $OUT/var/lib/kea/kea-leases6.csv
