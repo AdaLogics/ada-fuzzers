@@ -14,6 +14,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 #include <config.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include <dhcp/pkt6.h>
 #include <dhcp/libdhcp++.h>
@@ -21,6 +22,7 @@
 #include <dhcp6/ctrl_dhcp6_srv.h>
 #include <log/logger_support.h>
 #include <process/daemon.h>
+#include <util/filesystem.h>
 
 #include <cstddef>
 #include <cstdint>
@@ -35,7 +37,6 @@
 
 #include "helper_func.h"
 
-namespace fs = std::filesystem;
 using namespace isc::dhcp;
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
@@ -44,12 +45,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return 0;
     }
 
-    // Prepare the least storage directory required by the Pkt constructor
-    try {
-        fs::create_directories("var/lib/kea");
-    } catch (...) {
-        // Early exit if the directory is failed to create
-    }
+    // Randomly enable validatePath checking
+    FuzzedDataProvider fdp = FuzzedDataProvider(data, size);
+    isc::util::file::PathChecker::enableEnforcement(fdp.ConsumeBool());
 
     // Initialise logging
     setenv("KEA_LOGGER_DESTINATION", "/dev/null", 0);

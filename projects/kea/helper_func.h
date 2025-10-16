@@ -26,7 +26,8 @@ static const std::string JSON_CONFIG4 = R"CONFIG(
             },
             "lease-database": {
                 "type": "memfile",
-                "lfc-interval": 3600
+                "lfc-interval": 3600,
+                "name": "/tmp/kea-leases4.csv"
             },
             "valid-lifetime": 4000,
             "subnet4": [{
@@ -57,7 +58,8 @@ static const std::string JSON_CONFIG6 = R"CONFIG(
             }],
             "lease-database": {
                 "type": "memfile",
-                "lfc-interval": 3600
+                "lfc-interval": 3600,
+                "name": "/tmp/kea-leases6.csv"
             }
         }
     })CONFIG";
