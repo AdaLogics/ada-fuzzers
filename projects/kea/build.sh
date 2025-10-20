@@ -68,7 +68,7 @@ do
   $CXX $CXXFLAGS "$SRC/kea-fuzzer/helper_func.cc" \
     "$SRC/kea-fuzzer/${fuzzer}.cc"  \
     -Wl,--start-group $KEA_STATIC_LIBS -Wl,--end-group  \
-    $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}" &
+    $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}"
 
   if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
     cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT
@@ -94,16 +94,13 @@ do
       "$SRC/kea-fuzzer/${fuzzer}${DHCPVER}.cc" $extra_lib \
       -Wl,--start-group $KEA_STATIC_LIBS $BUILD_BASEDIR/bin/dhcp$DHCPVER/libdhcp$DHCPVER.a \
       -Wl,--end-group $INCLUDES $LIBS \
-      $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}${DHCPVER}" &
+      $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}${DHCPVER}"
 
     if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
       cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT/${fuzzer}${DHCPVER}.dict
     fi
   done
 done
-
-# Wait for the processes we started in parallel
-wait
 
 # Prepare the seeds
 zip -j $OUT/fuzz_dhcpsrv_seed_corpus.zip $SRC/kea-fuzzer/corp/*.json
