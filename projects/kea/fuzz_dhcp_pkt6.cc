@@ -75,13 +75,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     std::unique_ptr<ControlledDhcpv6Srv> srv;
     std::vector<uint8_t> buf(data, data + size);
 
+    bool started = false;
     try {
         // Package parsing
-        Pkt6Ptr pkt = Pkt6Ptr(new Pkt6(data, size));
-        pkt->toText();
-        pkt->getType();
-        pkt->getTransid();
-
         // Option parsing
         LibDHCP::unpackOptions6(buf, DHCP6_OPTION_SPACE, options);
         for (auto& kv : options) {
@@ -92,17 +88,27 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             opt->getType();
             opt->toText();
         }
-
         // Server initialisation
         srv.reset(new ControlledDhcpv6Srv());
         srv->init(path);
+        started = true;
+    } catch(const isc::Exception& e) {
+    }
 
-        // Process packet
-        if (srv) {
-            srv->processPacket(pkt);
+    if (started) {
+        try{
+            // Process packet
+            if (srv) {
+                Pkt6Ptr pkt = Pkt6Ptr(new Pkt6(data, size));
+                pkt->toText();
+                pkt->getType();
+                pkt->getTransid();
+                srv->processPacket(pkt);
+            }
+            std::cout << "D13\n";
+        } catch (const isc::Exception& e) {
+            // Slient exceptions
         }
-    } catch (const isc::Exception& e) {
-        // Slient exceptions
     }
 
     srv.reset();
