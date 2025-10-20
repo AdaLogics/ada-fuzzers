@@ -105,7 +105,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
                 pkt->getTransid();
                 srv->processPacket(pkt);
             }
-            std::cout << "D13\n";
         } catch (const isc::Exception& e) {
             // Slient exceptions
         }
