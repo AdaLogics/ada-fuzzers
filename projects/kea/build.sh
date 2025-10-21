@@ -43,7 +43,7 @@ else
 fi
 
 meson setup build --prefix="$OUT" $SANITIZER_CHOICE -D cpp_std=c++17 \
-  -D fuzz=enabled -D tests=disabled -D crypto=openssl -D default_library=static \
+  -D fuzz=enabled -D tests=enabled -D crypto=openssl -D default_library=static \
   -D default_both_libraries=static -D cpp_args="$CPP_ARGS" -D cpp_link_args="$LD_ARGS" \
   -D postgresql=enabled -D mysql=enabled -D krb5=enabled
 meson compile --verbose -C build
@@ -57,9 +57,11 @@ BUILD_BASEDIR="$SRC/kea/build/src"
 HOOKLIBS=$(find $BUILD_BASEDIR/hooks -type f -name '*.a' -print)
 KEA_STATIC_LIBS="/usr/lib/liblog4cplus.a libkea.a $HOOKLIBS "
 KEA_STATIC_LIBS+=$(find $BUILD_BASEDIR/bin \( -path '/src/kea/build/src/bin/dhcp4/*' -o -path '/src/kea/build/src/bin/dhcp6/*' \) -prune -o -type f -name '*.a' -print)
+KEA_STATIC_LIBS_TEST="$KEA_STATIC_LIBS $SRC/kea/build/subprojects/googletest-1.15.2/googletest/libgtest-all.a"
 
 INCLUDES="-I. -I$SRC -I$SRC/kea-fuzzer -Isrc -Ibuild -Isrc/lib -Isrc/bin -Isrc/hooks -Isrc/hooks/d2 -Isrc/hooks/d2/gss_tsig "
 INCLUDES+="-Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -I/usr/include/postgresql -I/usr/include/mariadb"
+KEA_INCLUDES="$INCLUDES -I/src/kea/subprojects/googletest-1.15.2/googletest/include -Ifuzz"
 LIBS="-lpthread -ldl -lm -lc++ -lc++abi -lssl -lcrypto -lkrb5 -lgssapi_krb5"
 export CXXFLAGS="${CXXFLAGS} -std=c++17 -stdlib=libc++ -Wno-unused-parameter -Wno-unused-value"
 
@@ -74,7 +76,6 @@ do
     cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT
   fi
 done
-
 
 for DHCPVER in 4 6
 do
@@ -99,6 +100,21 @@ do
     if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
       cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT/${fuzzer}${DHCPVER}.dict
     fi
+  done
+
+  # Compile fuzzers from kea repository
+  for fuzzer in fuzz_config_kea_dhcp fuzz_http_endpoint_kea_dhcp fuzz_packets_kea_dhcp fuzz_unix_socket_kea_dhcp
+  do
+    # Skip fuzz_http_endpoint_kea_dhcp6 as it requires real IPv6 binding which is not enabled in OSS-Fuzz
+    if [ "$fuzzer" = "fuzz_http_endpoint_kea_dhcp" ] && [ "$DHCPVER" = "6" ]; then
+      continue
+    fi
+
+    $CXX $CXXFLAGS -Wl,--start-group "$SRC/kea/fuzz/${fuzzer}${DHCPVER}.cc" \
+      $SRC/kea/fuzz/fuzz.cc $KEA_STATIC_LIBS_TEST \
+      $BUILD_BASEDIR/bin/dhcp$DHCPVER/libdhcp$DHCPVER.a \
+      $KEA_INCLUDES $LIBS $LIB_FUZZING_ENGINE -Wl,--end-group \
+      -o "$OUT/${fuzzer}${DHCPVER}"
   done
 done
 
