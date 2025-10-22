@@ -75,7 +75,6 @@ do
   fi
 done
 
-
 for DHCPVER in 4 6
 do
   for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql fuzz_mysql
@@ -90,9 +89,10 @@ do
       ;;
     esac
 
-    $CXX $CXXFLAGS "$SRC/kea-fuzzer/helper_func.cc" \
+    echo $KEA_STATIC_LIBS
+    $CXX $CXXFLAGS -Wl,--start-group "$SRC/kea-fuzzer/helper_func.cc" \
       "$SRC/kea-fuzzer/${fuzzer}${DHCPVER}.cc" $extra_lib \
-      -Wl,--start-group $KEA_STATIC_LIBS $BUILD_BASEDIR/bin/dhcp$DHCPVER/libdhcp$DHCPVER.a \
+      $KEA_STATIC_LIBS $BUILD_BASEDIR/bin/dhcp$DHCPVER/libdhcp$DHCPVER.a \
       -Wl,--end-group $INCLUDES $LIBS \
       $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}${DHCPVER}"
 

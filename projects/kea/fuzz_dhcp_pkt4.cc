@@ -20,6 +20,8 @@
 #include <dhcp/libdhcp++.h>
 #include <dhcp/option.h>
 #include <dhcp4/ctrl_dhcp4_srv.h>
+#include <hooks/hooks_manager.h>
+#include <hooks/callout_handle.h>
 #include <log/logger_support.h>
 #include <process/daemon.h>
 #include <util/filesystem.h>
@@ -38,6 +40,9 @@
 #include "helper_func.h"
 
 using namespace isc::dhcp;
+using namespace isc::hooks;
+
+extern "C" int buffer4_receive(CalloutHandle& handle);
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 236) {
@@ -62,6 +67,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Early exit if logging initialisation failed
         return 0;
     }
+
+    // Register hooks
+    HooksManager::setTestMode(true);
+    auto& pre = HooksManager::preCalloutsLibraryHandle();
+    pre.registerCallout("buffer4_receive", &buffer4_receive);
 
     // Create temporary configuration file
     std::string path = fuzz::writeTempConfig(true);
