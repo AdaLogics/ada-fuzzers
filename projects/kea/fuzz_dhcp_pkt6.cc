@@ -20,6 +20,8 @@
 #include <dhcp/libdhcp++.h>
 #include <dhcp/option.h>
 #include <dhcp6/ctrl_dhcp6_srv.h>
+#include <hooks/hooks_manager.h>
+#include <hooks/callout_handle.h>
 #include <log/logger_support.h>
 #include <process/daemon.h>
 #include <util/filesystem.h>
@@ -38,6 +40,9 @@
 #include "helper_func.h"
 
 using namespace isc::dhcp;
+using namespace isc::hooks;
+
+extern "C" int buffer6_receive(CalloutHandle& handle);
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 236) {
@@ -63,8 +68,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return 0;
     }
 
+    // Register hooks
+    HooksManager::setTestMode(true);
+    auto& pre = HooksManager::preCalloutsLibraryHandle();
+    pre.registerCallout("buffer6_receive", &buffer6_receive);
+
     // Create temporary configuration file
-    std::string path = fuzz::writeTempConfig(false);
+    std::string path = fuzz::writeTempConfig(true);
     if (path.empty()) {
         // Early exit if configuration file creation failed
         fuzz::deleteTempFile(path);
@@ -75,9 +85,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     std::unique_ptr<ControlledDhcpv6Srv> srv;
     std::vector<uint8_t> buf(data, data + size);
 
-    bool started = false;
     try {
         // Package parsing
+        Pkt6Ptr pkt = Pkt6Ptr(new Pkt6(data, size));
+        pkt->toText();
+        pkt->getType();
+        pkt->getTransid();
+
         // Option parsing
         LibDHCP::unpackOptions6(buf, DHCP6_OPTION_SPACE, options);
         for (auto& kv : options) {
@@ -88,32 +102,22 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             opt->getType();
             opt->toText();
         }
+
         // Server initialisation
         srv.reset(new ControlledDhcpv6Srv());
         srv->init(path);
-        started = true;
-    } catch(const isc::Exception& e) {
-    }
 
-    if (started) {
-        try{
-            // Process packet
-            if (srv) {
-                Pkt6Ptr pkt = Pkt6Ptr(new Pkt6(data, size));
-                pkt->toText();
-                pkt->getType();
-                pkt->getTransid();
-                srv->processPacket(pkt);
-            }
-        } catch (const isc::Exception& e) {
-            // Slient exceptions
+        // Process packet
+        if (srv) {
+            srv->processPacket(pkt);
         }
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
     }
 
     srv.reset();
 
-    // Remote temp configuration file
+    // Remove temp configuration file
     fuzz::deleteTempFile(path);
-
     return 0;
 }
