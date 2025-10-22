@@ -89,7 +89,6 @@ do
       ;;
     esac
 
-    echo $KEA_STATIC_LIBS
     $CXX $CXXFLAGS -Wl,--start-group "$SRC/kea-fuzzer/helper_func.cc" \
       "$SRC/kea-fuzzer/${fuzzer}${DHCPVER}.cc" $extra_lib \
       $KEA_STATIC_LIBS $BUILD_BASEDIR/bin/dhcp$DHCPVER/libdhcp$DHCPVER.a \
