@@ -147,6 +147,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Process packet
         if (srv) {
             srv->processPacket(pkt);
+            srv->processDhcp4Query(pkt, fdp.ConsumeBool());
         }
     } catch (const isc::Exception& e) {
         // Slient exceptions
