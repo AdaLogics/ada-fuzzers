@@ -101,7 +101,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     try {
         // Package parsing for 4o6
-        Pkt4o6Ptr pkt = Pkt4o6Ptr(new Pkt4(data, size), new Pkt6(data, size));
+        Pkt4Ptr pkt4 = Pkt4Ptr(new Pkt4(data, size));
+        Pkt6Ptr pkt6 = Pkt6Ptr(new Pkt6(data, size));
+        Pkt4o6Ptr pkt = Pkt4o6Ptr(new Pkt4o6(pkt4, pkt6));
         pkt->toText();
         pkt->getType();
         pkt->getTransid();
