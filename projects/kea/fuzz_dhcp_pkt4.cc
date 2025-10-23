@@ -45,7 +45,16 @@
 using namespace isc::dhcp;
 using namespace isc::hooks;
 
+static thread_local FuzzedDataProvider* fdp = nullptr;
+
 extern "C" int buffer4_receive(CalloutHandle& handle);
+extern "C" int buffer4_receive_wrapper(CalloutHandle& handle) {
+    if (fdp->ConsumeBool()) {
+        return buffer4_receive(handle);
+    }
+
+    return 0;
+}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 236) {
@@ -54,8 +63,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     // Randomly enable validatePath checking
-    FuzzedDataProvider fdp = FuzzedDataProvider(data, size);
-    isc::util::file::PathChecker::enableEnforcement(fdp.ConsumeBool());
+    fdp = new FuzzedDataProvider(data, size);
+    isc::util::file::PathChecker::enableEnforcement(fdp->ConsumeBool());
 
     // Initialise logging
     setenv("KEA_LOGGER_DESTINATION", "/dev/null", 0);
@@ -74,7 +83,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     // Register hooks
     HooksManager::setTestMode(true);
     auto& pre = HooksManager::preCalloutsLibraryHandle();
-    pre.registerCallout("buffer4_receive", &buffer4_receive);
+    pre.registerCallout("buffer4_receive", &buffer4_receive_wrapper);
 
     // Create temporary configuration file
     std::string path = fuzz::writeTempConfig(true);
@@ -97,7 +106,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->getTransid();
         pkt->unpack();
         pkt->pack();
-        pkt->getMAC(fdp.ConsumeIntegral<uint16_t>());
+        pkt->getMAC(fdp->ConsumeIntegral<uint16_t>());
     } catch (...) {}
 
     // OptionVendor parsing
@@ -119,7 +128,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->getTransid();
         pkt->unpack();
         pkt->pack();
-        pkt->getMAC(fdp.ConsumeIntegral<uint16_t>());
+        pkt->getMAC(fdp->ConsumeIntegral<uint16_t>());
     } catch (...) {}
 
     try {
@@ -147,7 +156,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Process packet
         if (srv) {
             srv->processPacket(pkt);
-            srv->processDhcp4Query(pkt, fdp.ConsumeBool());
+            srv->processDhcp4Query(pkt, fdp->ConsumeBool());
         }
     } catch (const isc::Exception& e) {
         // Slient exceptions
@@ -157,5 +166,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Remove temp configuration file
     fuzz::deleteTempFile(path);
+    delete fdp;
     return 0;
 }
