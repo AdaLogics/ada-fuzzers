@@ -86,6 +86,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     std::vector<uint8_t> buf(data, data + size);
 
     try {
+        Pkt6Ptr pkt = Pkt6Ptr(new Pkt6(data, size));
+        pkt->toText();
+        pkt->getType();
+        pkt->getTransid();
+        pkt->unpack();
+        pkt->pack();
+    } catch (...) {}
+
+    try {
         // Package parsing
         Pkt6Ptr pkt = Pkt6Ptr(new Pkt6(data, size));
         pkt->toText();
