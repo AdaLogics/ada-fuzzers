@@ -17,6 +17,8 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include <dhcp/pkt4.h>
+#include <dhcp/pkt4o6.h>
+#include <dhcp/pkt6.h>
 #include <dhcp/libdhcp++.h>
 #include <dhcp/option.h>
 #include <dhcp4/ctrl_dhcp4_srv.h>
@@ -89,6 +91,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     try {
         // Package parsing
         Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(data, size));
+        pkt->toText();
+        pkt->getType();
+        pkt->getTransid();
+        pkt->unpack();
+        pkt->pack();
+        pkt->getMAC(fdp.ConsumeIntegral<uint32_t>());
+    } catch (...) {}
+
+    try {
+        // Package parsing for 4o6
+        Pkt4o6Ptr pkt = Pkt4o6Ptr(new Pkt4o6(data, size), new Pkt6());
         pkt->toText();
         pkt->getType();
         pkt->getTransid();
