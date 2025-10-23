@@ -94,6 +94,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->getTransid();
         pkt->unpack();
         pkt->pack();
+        pkt->getMAC(fdp.ConsumeIntegral<uint32_t>());
     } catch (...) {}
 
     try {
