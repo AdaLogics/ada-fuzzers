@@ -92,6 +92,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->toText();
         pkt->getType();
         pkt->getTransid();
+        pkt->unpack();
+        pkt->pack();
+    } catch (...) {}
+
+    try {
+        // Package parsing
+        Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(data, size));
+        pkt->toText();
+        pkt->getType();
+        pkt->getTransid();
 
         // Option parsing
         LibDHCP::unpackOptions4(buf, DHCP4_OPTION_SPACE, options, deferred, false);
