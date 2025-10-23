@@ -20,6 +20,7 @@
 #include <dhcp/libdhcp++.h>
 #include <dhcp/option.h>
 #include <dhcp4/ctrl_dhcp4_srv.h>
+#include <dhcp/option_vendor_class.h>
 #include <hooks/hooks_manager.h>
 #include <hooks/callout_handle.h>
 #include <log/logger_support.h>
@@ -97,6 +98,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->getMAC(fdp.ConsumeIntegral<uint32_t>());
     } catch (...) {}
 
+    // OptionVendor parsing
+    try {
+        OptionBuffer buf(data, data + size);
+        OptionVendorClassPtr vendor_class;
+        vendor_class = OptionVendorClassPtr(new OptionVendorClass(Option::V4,
+            buf.begin(),
+            buf.end()));
+    }catch(...){}
+    
     try {
         // Package parsing
         Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(data, size));
