@@ -12,12 +12,14 @@
 #include <dhcp/pkt6.h>
 #include <dhcp/libdhcp++.h>
 #include <dhcp/option.h>
+#include <dhcp/protocol_util.h>
 #include <dhcp4/ctrl_dhcp4_srv.h>
 #include <dhcp/option_vendor_class.h>
 #include <hooks/hooks_manager.h>
 #include <hooks/callout_handle.h>
 #include <log/logger_support.h>
 #include <process/daemon.h>
+#include <util/buffer.h>
 #include <util/filesystem.h>
 
 #include <cstddef>
@@ -35,6 +37,7 @@
 
 using namespace isc::dhcp;
 using namespace isc::hooks;
+using namespace isc::util;
 
 static thread_local FuzzedDataProvider* fdp = nullptr;
 
@@ -123,11 +126,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     } catch (...) {}
 
     try {
+        // Protocol parsing
+        InputBuffer buf(data, size);
+        Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(DHCPREQUEST, 1234));
+        decodeEthernetHeader(buf, pkt);
+        decodeIpUdpHeader(buf, pkt);
+        calcChecksum(data, size, fdp->ConsumeIntegral<uint32_t>());
+    } catch (...) {}
+
+    try {
         // Package parsing
         Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(data, size));
-        pkt->toText();
-        pkt->getType();
-        pkt->getTransid();
 
         // Option parsing
         LibDHCP::unpackOptions4(buf, DHCP4_OPTION_SPACE, options, deferred, false);
