@@ -172,5 +172,48 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     parseAnswer(status, fuzz::parseJSON(payload));
   } catch(const isc::Exception&) {}
 
+    // Try fuzzing specific deeper fuzzers directly
+
+    // Subnets6ListConfigParser
+    try {
+        ElementPtr elem = fuzz::parseJSON(payload);
+        SrvConfigPtr srv = SrvConfigPtr(new SrvConfig());
+        Subnets6ListConfigParser parser(fdp.ConsumeBool());
+        parser.parse(srv, elem, fdp.ConsumeBool());
+    } catch (const isc::Exception&) {
+        // Known exceptions
+    }
+
+    // RelayInfoParser
+    try {
+        Option::Universe opt = Option::V4;
+        ElementPtr elem = fuzz::parseJSON(payload);
+        Network::RelayInfoPtr info = Network::RelayInfoPtr(new Network::RelayInfo());
+        RelayInfoParser parser(opt);
+        parser.parse(info, elem);
+    } catch (const isc::Exception&) {
+        // Known exceptions
+    }
+
+    // PdPoolParser
+    try {
+        ElementPtr elem = fuzz::parseJSON(payload);
+        PoolStoragePtr pools(new PoolStorage());
+        PdPoolParser parser = PdPoolParser();
+        parser.parse(pools, elem, fdp.ConsumeBool());
+    } catch (const isc::Exception&) {
+        // Known exceptions
+    }
+
+    // CompatibilityParser
+    try {
+        ElementPtr elem = fuzz::parseJSON(payload);
+        SrvConfig srv = SrvConfig();
+        CompatibilityParser parser = CompatibilityParser();
+        parser.parse(elem, srv);
+    } catch (const isc::Exception&) {
+        // Known exceptions
+    }
+
   return 0;
 }
