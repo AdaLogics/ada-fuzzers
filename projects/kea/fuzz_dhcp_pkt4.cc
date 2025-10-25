@@ -75,9 +75,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     // Register hooks
-    HooksManager::setTestMode(true);
-    auto& pre = HooksManager::preCalloutsLibraryHandle();
-    pre.registerCallout("buffer4_receive", &buffer4_receive_wrapper);
+    //HooksManager::setTestMode(true);
+    //auto& pre = HooksManager::preCalloutsLibraryHandle();
+    //pre.registerCallout("buffer4_receive", &buffer4_receive_wrapper);
 
     // Create temporary configuration file
     std::string path = fuzz::writeTempConfig(true);
