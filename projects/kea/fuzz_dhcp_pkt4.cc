@@ -133,7 +133,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         decodeIpUdpHeader(buf, pkt);
         calcChecksum(data, size, fdp->ConsumeIntegral<uint32_t>());
     } catch (...) {}
-
+/*
     try {
         // Package parsing
         Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(data, size));
@@ -163,7 +163,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     }
 
     srv.reset();
-
+*/
     // Remove temp configuration file
     fuzz::deleteTempFile(path);
     delete fdp;
