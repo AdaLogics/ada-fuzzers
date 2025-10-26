@@ -94,6 +94,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->unpack();
         pkt->pack();
         pkt->getMAC(fdp->ConsumeIntegral<uint32_t>());
+        pkt->getName(fdp->ConsumeIntegral<uint8_t>());
+        pkt->getLabel();
     } catch (...) {}
 
     // OptionVendor parsing
