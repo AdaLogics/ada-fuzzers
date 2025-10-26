@@ -14,6 +14,7 @@
 #include <dhcp/option.h>
 #include <dhcp/protocol_util.h>
 #include <dhcp4/ctrl_dhcp4_srv.h>
+#include <dhcp/option_vendor.h>
 #include <dhcp/option_vendor_class.h>
 #include <hooks/hooks_manager.h>
 #include <hooks/callout_handle.h>
@@ -103,14 +104,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->getMAC(fdp->ConsumeIntegral<uint16_t>());
     } catch (...) {}
 
-    // OptionVendor parsing
+    // OptionVendorClass parsing
     try {
         OptionBuffer buf(data, data + size);
         OptionVendorClassPtr vendor_class;
         vendor_class = OptionVendorClassPtr(new OptionVendorClass(Option::V4,
             buf.begin(),
             buf.end()));
-    }catch(...){}
+    }catch(...){
+    }
 
     try {
         // Package parsing for 4o6
@@ -133,6 +135,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         decodeIpUdpHeader(buf, pkt);
         calcChecksum(data, size, fdp->ConsumeIntegral<uint32_t>());
     } catch (...) {}
+
+    // OptionVendor parsing
+    try{
+        OptionBuffer buf(data, data + size);
+        OptionVendorPtr vendor;
+        vendor.reset(new OptionVendor(Option::V4, buf.begin() + 2, buf.end()));
+        OutputBuffer output(0);
+        vendor->pack(output);
+    }
+    catch (...){}
 
     try {
         // Package parsing
