@@ -101,6 +101,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         pkt->getTransid();
         pkt->unpack();
         pkt->pack();
+        pkt->getName();
+        pkt->getName(fdp->ConsumeIntegral<uint8_t>());
+        pkt->getLabel();           
         pkt->getMAC(fdp->ConsumeIntegral<uint16_t>());
     } catch (...) {}
 
