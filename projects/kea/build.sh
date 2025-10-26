@@ -74,7 +74,7 @@ done
 
 for DHCPVER in 4 6
 do
-  for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql fuzz_mysql
+  for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql fuzz_mysql fuzz_dhcp_pkt_validate
   do
     extra_lib=""
     case "$fuzzer" in fuzz_pgsql)
