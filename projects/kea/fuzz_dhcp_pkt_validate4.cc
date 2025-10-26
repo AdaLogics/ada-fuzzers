@@ -109,7 +109,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Call classifyPacket for packet checking
     try {
-        pkt
         srv->fuzz_classifyPacket(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
