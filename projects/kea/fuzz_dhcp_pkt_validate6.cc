@@ -75,11 +75,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return 0;
     }
 
-    OptionCollection options;
     Pkt6Ptr pkt;
-    std::list<uint16_t> deferred;
     std::unique_ptr<MyDhcpv6Srv> srv;
-    std::vector<uint8_t> buf(data, data + size);
 
     // Package parsing
     try {
