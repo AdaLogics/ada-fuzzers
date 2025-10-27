@@ -5,10 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ////////////////////////////////////////////////////////////////////////////////
 #include <config.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
-#include <dhcp/pkt4.h>
+#include <dhcp/pkt6.h>
 #include <dhcp/libdhcp++.h>
-#include <dhcp4/ctrl_dhcp4_srv.h>
+#include <dhcp6/ctrl_dhcp6_srv.h>
 #include <log/logger_support.h>
 #include <util/filesystem.h>
 
@@ -30,17 +31,13 @@ using namespace isc::util;
 
 namespace isc {
     namespace dhcp {
-        class MyDhcpv4Srv : public ControlledDhcpv4Srv {
+        class MyDhcpv6Srv : public ControlledDhcpv6Srv {
             public:
-                bool fuzz_accept(const Pkt4Ptr& pkt) {
-                    return accept(pkt);
+                void fuzz_sanityCheck(const Pkt6Ptr& query) {
+                    sanityCheck(query);
                 }
 
-                static void fuzz_sanityCheck(const Pkt4Ptr& query) {
-                    ControlledDhcpv4Srv::sanityCheck(query);
-                }
-
-                void fuzz_classifyPacket(const Pkt4Ptr& pkt) {
+                void fuzz_classifyPacket(const Pkt6Ptr& pkt) {
                     classifyPacket(pkt);
                 }
 
@@ -71,28 +68,33 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return 0;
     }
 
-    std::string path = fuzz::writeTempConfig(true);
+    std::string path = fuzz::writeTempConfig(false);
     if (path.empty()) {
         // Early exit if configuration file creation failed
         fuzz::deleteTempFile(path);
         return 0;
     }
 
-    Pkt4Ptr pkt;
-    std::unique_ptr<MyDhcpv4Srv> srv;
+    Pkt6Ptr pkt;
+    std::unique_ptr<MyDhcpv6Srv> srv;
 
     // Package parsing
     try {
-        pkt = Pkt4Ptr(new Pkt4(data, size));
+        pkt = Pkt6Ptr(new Pkt6(data, size));
         pkt->unpack();
     } catch (...) {
         // Early exit if package parsing failed.
         return 0;
     }
 
+    // Configure random value in packet
+    FuzzedDataProvider fdp(data, size);
+    uint8_t typeChoice = fdp.ConsumeIntegralInRange<uint8_t>(0, 37);
+    pkt->setType(static_cast<DHCPv6MessageType>(typeChoice));
+
     // Server initialisation
     try {
-        srv.reset(new MyDhcpv4Srv());
+        srv.reset(new MyDhcpv6Srv());
         srv->init(path);
     } catch (...) {
         // Early exit if server initialisation failed.
@@ -111,16 +113,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Slient exceptions
     }
 
-    // Call accept for packet checking
+    // Call sanityCheck for packet checking
     try {
-        srv->fuzz_accept(pkt);
+        srv->fuzz_sanityCheck(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
     }
 
-    // Call sanityCheck for packet checking
+    // Call process functions after the accept and check
     try {
-        MyDhcpv4Srv::fuzz_sanityCheck(pkt);
+        srv->processDhcp6Query(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
     }
