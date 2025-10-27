@@ -87,6 +87,10 @@ do
       extra_lib+="$SRC/kea/build/src/hooks/dhcp/mysql/libdhcp_mysql.a"
       ;;
     esac
+    case "$fuzzer" in fuzz_dhcp_pkt_process)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/lease_cmds/libdhcp_lease_cmds.a"
+      ;;
+    esac
 
     $CXX $CXXFLAGS -Wl,--start-group "$SRC/kea-fuzzer/helper_func.cc" \
       "$SRC/kea-fuzzer/${fuzzer}${DHCPVER}.cc" $extra_lib \

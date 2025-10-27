@@ -7,9 +7,12 @@
 #include <config.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
+#include <dhcp/dhcp4.h>
 #include <dhcp/pkt4.h>
 #include <dhcp/libdhcp++.h>
 #include <dhcp4/ctrl_dhcp4_srv.h>
+#include <dhcpsrv/callout_handle_store.h>
+#include <dhcpsrv/lease_mgr_factory.h>
 #include <log/logger_support.h>
 #include <util/filesystem.h>
 
@@ -27,7 +30,11 @@
 #include "helper_func.h"
 
 using namespace isc::dhcp;
+using namespace isc::hooks;
 using namespace isc::util;
+
+extern "C" int lease4_offer(CalloutHandle& handle);
+extern "C" int leases4_committed(CalloutHandle& handle);
 
 namespace isc {
     namespace dhcp {
@@ -50,7 +57,6 @@ namespace isc {
                                                   bool allow_answer_park = true) {
                     return selectSubnet(query, drop, allow_answer_park);
                 }
-
         };
     }
 }
@@ -171,7 +177,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     // Call select subnet
     try {
         bool drop = false;
-        ctx->subnet_ = srv->fuzz_selectSubnet(pkt, drop, false);
+        if (!ctx) {
+            ctx.reset(new AllocEngine::ClientContext4());
+        }
+        if (ctx) {
+            ctx->subnet_ = srv->fuzz_selectSubnet(pkt, drop, false);
+        }
     } catch (const isc::Exception& e) {
         // Slient exceptions
     } catch (const boost::exception& e) {
@@ -185,6 +196,66 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Slient exceptions
     } catch (const boost::exception& e) {
         // Slient exceptions
+    }
+
+    // Prepare callout handle
+    CalloutHandlePtr handle = getCalloutHandle(pkt);
+    Pkt4Ptr rsp;
+
+    // Call lease4_offer
+    try {
+        uint8_t mac_addr[6];
+        for (size_t i = 0; i < 6; ++i) {
+            mac_addr[i] = fdp.ConsumeIntegral<uint8_t>();
+        }
+        HWAddr hw(mac_addr, sizeof(mac_addr), HTYPE_ETHER);
+        Lease4Collection leases = LeaseMgrFactory::instance().getLease4(hw);
+        handle->setArgument("leases4", leases);
+        if (!ctx) {
+            ctx.reset(new AllocEngine::ClientContext4());
+        }
+        if (ctx) {
+            handle->setArgument("offer_lifetime", ctx->offer_lft_);
+            handle->setArgument("old_lease", ctx->old_lease_);
+            handle->setArgument("host", ctx->currentHost());
+        }
+        handle->setArgument("query4", pkt);
+        handle->setArgument("response4", rsp);
+
+        lease4_offer(*handle);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Clean up to avoid mem leak
+    if (handle) {
+        handle->deleteAllArguments();
+    }
+
+    // Call lease4_committed
+    try {
+        uint8_t mac_addr[6];
+        for (size_t i = 0; i < 6; ++i) {
+            mac_addr[i] = fdp.ConsumeIntegral<uint8_t>();
+        }
+        HWAddr hw(mac_addr, sizeof(mac_addr), HTYPE_ETHER);
+        Lease4Collection leases = LeaseMgrFactory::instance().getLease4(hw);
+        handle->setArgument("leases4", leases);
+        handle->setArgument("query4", pkt);
+        handle->setArgument("response4", rsp);
+
+        leases4_committed(*handle);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Clean up to avoid mem leak
+    if (handle) {
+        handle->deleteAllArguments();
     }
 
     srv.reset();

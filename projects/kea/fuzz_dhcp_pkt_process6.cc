@@ -7,9 +7,12 @@
 #include <config.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
+#include <dhcp/dhcp6.h>
 #include <dhcp/pkt6.h>
 #include <dhcp/libdhcp++.h>
 #include <dhcp6/ctrl_dhcp6_srv.h>
+#include <dhcpsrv/callout_handle_store.h>
+#include <dhcpsrv/lease_mgr_factory.h>
 #include <log/logger_support.h>
 #include <util/filesystem.h>
 
@@ -28,7 +31,10 @@
 #include "helper_func.h"
 
 using namespace isc::dhcp;
+using namespace isc::hooks;
 using namespace isc::util;
+
+extern "C" int leases6_committed(CalloutHandle& handle);
 
 namespace isc {
     namespace dhcp {
@@ -169,6 +175,34 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Slient exceptions
     } catch (const boost::exception& e) {
         // Slient exceptions
+    }
+
+    // Prepare callout handle
+    CalloutHandlePtr handle = getCalloutHandle(pkt);
+    Pkt6Ptr rsp;
+
+    // Call lease4_committed
+    try {
+        uint8_t mac_addr[6];
+        for (size_t i = 0; i < 6; ++i) {
+            mac_addr[i] = fdp.ConsumeIntegral<uint8_t>();
+        }
+        HWAddr hw(mac_addr, sizeof(mac_addr), HTYPE_ETHER);
+        Lease6Collection leases = LeaseMgrFactory::instance().getLease6(hw);
+        handle->setArgument("leases6", leases);
+        handle->setArgument("query6", pkt);
+        handle->setArgument("response6", rsp);
+
+        leases6_committed(*handle);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Clean up to avoid mem leak
+    if (handle) {
+        handle->deleteAllArguments();
     }
 
     srv.reset();
