@@ -45,8 +45,7 @@ llvm-ranlib libkea.a
 
 # Find necessary static libraries
 BUILD_BASEDIR="$SRC/kea/build/src"
-HOOKLIBS=$(find $BUILD_BASEDIR/hooks -type f -name '*.a' -print)
-KEA_STATIC_LIBS="/usr/lib/liblog4cplus.a libkea.a $HOOKLIBS "
+KEA_STATIC_LIBS="/usr/lib/liblog4cplus.a libkea.a  "
 KEA_STATIC_LIBS+=$(find $BUILD_BASEDIR/bin \( -path '/src/kea/build/src/bin/dhcp4/*' -o -path '/src/kea/build/src/bin/dhcp6/*' \) -prune -o -type f -name '*.a' -print)
 KEA_STATIC_LIBS_TEST="$KEA_STATIC_LIBS $SRC/kea/build/subprojects/googletest-1.15.2/googletest/libgtest-all.a"
 
@@ -58,9 +57,14 @@ export CXXFLAGS="${CXXFLAGS} -std=c++17 -stdlib=libc++ -Wno-unused-parameter -Wn
 
 for fuzzer in fuzz_ioaddress fuzz_http fuzz_dhcpsrv fuzz_agent fuzz_d2 fuzz_util fuzz_cc fuzz_dhcpsrv_csv_lease fuzz_crypto fuzz_hook_tsig
 do
+  extra_lib=""
+  case "$fuzzer" in fuzz_hook_tsig)
+    extra_lib="$SRC/kea/build/src/hooks/d2/gss_tsig/libddns_gss_tsig.a"
+    ;;
+  esac
   $CXX $CXXFLAGS "$SRC/kea-fuzzer/helper_func.cc" \
     "$SRC/kea-fuzzer/${fuzzer}.cc"  \
-    -Wl,--start-group $KEA_STATIC_LIBS -Wl,--end-group  \
+    -Wl,--start-group $KEA_STATIC_LIBS $extra_lib -Wl,--end-group  \
     $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}"
 
   if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
@@ -74,11 +78,13 @@ do
   do
     extra_lib=""
     case "$fuzzer" in fuzz_pgsql)
-      extra_lib="$SRC/kea-fuzzer/pgmock.cc"
+      extra_lib="$SRC/kea-fuzzer/pgmock.cc "
+      extra_lib+="$SRC/kea/build/src/hooks/dhcp/pgsql/libdhcp_pgsql.a"
       ;;
     esac
     case "$fuzzer" in fuzz_mysql)
-      extra_lib="$SRC/kea-fuzzer/mysqlmock.cc"
+      extra_lib="$SRC/kea-fuzzer/mysqlmock.cc "
+      extra_lib+="$SRC/kea/build/src/hooks/dhcp/mysql/libdhcp_mysql.a"
       ;;
     esac
 

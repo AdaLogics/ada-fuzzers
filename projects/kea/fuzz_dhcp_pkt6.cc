@@ -12,8 +12,6 @@
 #include <dhcp/option.h>
 #include <dhcp6/ctrl_dhcp6_srv.h>
 #include <dhcp/option_vendor_class.h>
-#include <hooks/hooks_manager.h>
-#include <hooks/callout_handle.h>
 #include <log/logger_support.h>
 #include <process/daemon.h>
 #include <util/filesystem.h>
@@ -35,15 +33,6 @@ using namespace isc::dhcp;
 using namespace isc::hooks;
 
 static thread_local FuzzedDataProvider* fdp = nullptr;
-
-extern "C" int buffer6_receive(CalloutHandle& handle);
-extern "C" int buffer6_receive_wrapper(CalloutHandle& handle) {
-    if (fdp->ConsumeBool()) {
-        return buffer6_receive(handle);
-    }
-
-    return 0;
-}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 236) {
@@ -68,11 +57,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Early exit if logging initialisation failed
         return 0;
     }
-
-    // Register hooks
-    HooksManager::setTestMode(true);
-    auto& pre = HooksManager::preCalloutsLibraryHandle();
-    pre.registerCallout("buffer6_receive", &buffer6_receive_wrapper);
 
     // Create temporary configuration file
     std::string path = fuzz::writeTempConfig(true);
