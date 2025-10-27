@@ -16,8 +16,6 @@
 #include <dhcp4/ctrl_dhcp4_srv.h>
 #include <dhcp/option_vendor.h>
 #include <dhcp/option_vendor_class.h>
-#include <hooks/hooks_manager.h>
-#include <hooks/callout_handle.h>
 #include <log/logger_support.h>
 #include <process/daemon.h>
 #include <util/buffer.h>
@@ -41,15 +39,6 @@ using namespace isc::hooks;
 using namespace isc::util;
 
 static thread_local FuzzedDataProvider* fdp = nullptr;
-
-extern "C" int buffer4_receive(CalloutHandle& handle);
-extern "C" int buffer4_receive_wrapper(CalloutHandle& handle) {
-    if (fdp->ConsumeBool()) {
-        return buffer4_receive(handle);
-    }
-
-    return 0;
-}
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     if (size < 236) {
@@ -75,11 +64,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return 0;
     }
 
-    // Register hooks
-    //HooksManager::setTestMode(true);
-    //auto& pre = HooksManager::preCalloutsLibraryHandle();
-    //pre.registerCallout("buffer4_receive", &buffer4_receive_wrapper);
-
     // Create temporary configuration file
     std::string path = fuzz::writeTempConfig(true);
     if (path.empty()) {
@@ -96,7 +80,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     try {
         // Package parsing
         Pkt4Ptr pkt = Pkt4Ptr(new Pkt4(data, size));
-        pkt->toText();
+        pkt->toText(fdp->ConsumeBool());
         pkt->getType();
         pkt->getTransid();
         pkt->unpack();
