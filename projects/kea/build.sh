@@ -74,7 +74,7 @@ done
 
 for DHCPVER in 4 6
 do
-  for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql fuzz_mysql
+  for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql fuzz_mysql fuzz_dhcp_pkt_process
   do
     extra_lib=""
     case "$fuzzer" in fuzz_pgsql)
@@ -85,6 +85,10 @@ do
     case "$fuzzer" in fuzz_mysql)
       extra_lib="$SRC/kea-fuzzer/mysqlmock.cc "
       extra_lib+="$SRC/kea/build/src/hooks/dhcp/mysql/libdhcp_mysql.a"
+      ;;
+    esac
+    case "$fuzzer" in fuzz_dhcp_pkt_process)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/lease_cmds/libdhcp_lease_cmds.a"
       ;;
     esac
 
