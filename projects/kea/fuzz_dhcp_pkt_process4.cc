@@ -45,6 +45,12 @@ namespace isc {
                     classifyPacket(pkt);
                 }
 
+                ConstSubnet4Ptr fuzz_selectSubnet(const Pkt4Ptr& query,
+                                                  bool& drop,
+                                                  bool allow_answer_park = true) {
+                    return selectSubnet(query, drop, allow_answer_park);
+                }
+
         };
     }
 }
@@ -84,7 +90,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Package parsing
     try {
-        pkt = Pkt4Ptr(new Pkt4(data, size));
+        // Add fixed magic cookie and correct hardware address
+        std::vector<uint8_t> buf(data, data + size);
+        if (size >= 240) {
+            // Max hardware address length is 20
+            buf[2] = 20;
+
+            // Magic cookie fixed value 0x63825363
+            buf[236] = 0x63;
+            buf[237] = 0x82;
+            buf[238] = 0x53;
+            buf[239] = 0x63;
+        }
+
+        pkt = Pkt4Ptr(new Pkt4(buf.data(), buf.size()));
         pkt->unpack();
     } catch (...) {
         // Early exit if package parsing failed.
@@ -115,12 +134,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         srv->fuzz_classifyPacket(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
     }
 
     // Call accept for packet checking
     try {
         srv->fuzz_accept(pkt);
     } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
         // Slient exceptions
     }
 
@@ -129,12 +152,38 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         MyDhcpv4Srv::fuzz_sanityCheck(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
     }
 
-    // Call process functions after the accept and check
+    // Prepare client context
+    AllocEngine::ClientContext4Ptr ctx(new AllocEngine::ClientContext4());
+
+    // Call earlyGHRLookup
     try {
-        srv->processDhcp4Query(pkt, fdp.ConsumeBool());
+        srv->earlyGHRLookup(pkt, ctx);
     } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Call select subnet
+    try {
+        bool drop = false;
+        ctx->subnet_ = srv->fuzz_selectSubnet(pkt, drop, false);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Call processLocalizedQuery4
+    try {
+        srv->processLocalizedQuery4(ctx, false);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
         // Slient exceptions
     }
 

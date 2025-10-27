@@ -23,6 +23,7 @@
 #include <fstream>
 #include <string>
 #include <cstdio>
+#include <cstdlib>
 
 #include "helper_func.h"
 
@@ -41,6 +42,9 @@ namespace isc {
                     classifyPacket(pkt);
                 }
 
+                ConstSubnet6Ptr fuzz_selectSubnet(const Pkt6Ptr& question, bool& drop) {
+                    return selectSubnet(question, drop);
+                }
         };
     }
 }
@@ -53,6 +57,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Disable validatePath checking to allow writing configuration file to /tmp
     isc::util::file::PathChecker::enableEnforcement(false);
+
+    // Force DUID file to /tmp
+    setenv("KEA_DHCP_DATA_DIR", "/tmp", 1);
 
     // Initialise logging
     setenv("KEA_LOGGER_DESTINATION", "/dev/null", 0);
@@ -111,6 +118,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         srv->fuzz_classifyPacket(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
     }
 
     // Call sanityCheck for packet checking
@@ -118,12 +127,47 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         srv->fuzz_sanityCheck(pkt);
     } catch (const isc::Exception& e) {
         // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
     }
 
     // Call process functions after the accept and check
     try {
         srv->processDhcp6Query(pkt);
     } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Prepare client context
+    AllocEngine::ClientContext6 ctx;
+
+    // Call earlyGHRLookup
+    try {
+        srv->earlyGHRLookup(pkt, ctx);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Call select subnet
+    try {
+        bool drop = false;
+        ctx.subnet_ = srv->fuzz_selectSubnet(pkt, drop);
+    } catch (const isc::Exception& e) {
+       // Slient exceptions
+    } catch (const boost::exception& e) {
+        // Slient exceptions
+    }
+
+    // Call processLocalizedQuery6
+    try {
+        srv->processLocalizedQuery6(ctx);
+    } catch (const isc::Exception& e) {
+        // Slient exceptions
+    } catch (const boost::exception& e) {
         // Slient exceptions
     }
 
