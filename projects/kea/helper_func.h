@@ -55,9 +55,26 @@ static const std::string JSON_CONFIG6 = R"CONFIG(
         }
     })CONFIG";
 
+static const std::string LEASE4 = R"LEASE(
+address,hwaddr,client_id,valid_lifetime,expire,subnet_id,fqdn_fwd,fqdn_rev,hostname,state,user_context,pool_id
+192.0.2.10,32:30,33:30,40,1642000000,50,1,1,one.example.com,0,,0
+192.0.2.11,,31:32:33,40,1643210000,50,1,1,,1,{  },0
+192.0.2.12,32:32,,40,1643212345,50,1,1,three&#x2cexample&#x2ccom,2,{ "a": 1&#x2c "b": "c" },0
+192.0.2.13,aa:bb:cc:dd:ee:01,01:23:45:67:89:ab,86400,1767225600,1,1,1,host1.example.test,0,{  },0
+)LEASE";
+
+static const std::string LEASE6 = R"LEASE(
+address,duid,valid_lifetime,expire,subnet_id,pref_lifetime,lease_type,iaid,prefix_len,fqdn_fwd,fqdn_rev,hostname,hwaddr,state,user_context,hwtype,hwaddr_source,pool_id
+::10,32:30:33,30,1642000000,40,50,1,60,128,1,1,one.example.com,38:30,0,,90,16,0
+::11,32:31:33,30,1643210000,40,50,1,60,128,1,1,,38:30,1,{  },90,1,0
+::12,32:32:33,30,1643212345,40,50,1,60,128,1,1,three&#x2cexample&#x2ccom,38:30,2,{ "a": 1&#x2c "b": "c" },90,4,0
+2001:db8::100,00:01:00:01:12:34:56:78:aa:bb:cc:dd,86400,1767225600,1,43200,0,1,128,1,1,host1v6.example.test,aa:bb:cc:dd:ee:01,0,{  },1,1,0
+)LEASE";
+
 namespace fuzz {
     std::string writeTempConfig(bool isV4);
-    std::string writeTempFile(const std::string& payload, const char* suffix = "json");
+    std::string writeTempLease(bool isV4);
+    std::string writeTempFile(const std::string& payload, const char* suffix = "json", const std::string& explicit_path = "");
     void deleteTempFile(std::string file_path);
     isc::data::ElementPtr parseJSON(const std::string& s);
 }
