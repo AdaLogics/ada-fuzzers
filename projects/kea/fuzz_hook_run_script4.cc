@@ -42,22 +42,8 @@ namespace isc {
     namespace dhcp {
         class MyDhcpv4Srv : public ControlledDhcpv4Srv {
             public:
-                bool fuzz_accept(const Pkt4Ptr& pkt) {
-                    return accept(pkt);
-                }
-
-                static void fuzz_sanityCheck(const Pkt4Ptr& query) {
-                    ControlledDhcpv4Srv::sanityCheck(query);
-                }
-
                 void fuzz_classifyPacket(const Pkt4Ptr& pkt) {
                     classifyPacket(pkt);
-                }
-
-                ConstSubnet4Ptr fuzz_selectSubnet(const Pkt4Ptr& query,
-                                                  bool& drop,
-                                                  bool allow_answer_park = true) {
-                    return selectSubnet(query, drop, allow_answer_park);
                 }
         };
     }
@@ -150,24 +136,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Slient exceptions
     }
 
-    // Call accept for packet checking
-    try {
-        srv->fuzz_accept(pkt);
-    } catch (const isc::Exception& e) {
-        // Slient exceptions
-    } catch (const boost::exception& e) {
-        // Slient exceptions
-    }
-
-    // Call sanityCheck for packet checking
-    try {
-        MyDhcpv4Srv::fuzz_sanityCheck(pkt);
-    } catch (const isc::Exception& e) {
-        // Slient exceptions
-    } catch (const boost::exception& e) {
-        // Slient exceptions
-    }
-
     // Prepare client context
     CalloutHandlePtr handle = nullptr;
     AllocEngine::ClientContext4Ptr ctx(new AllocEngine::ClientContext4());
@@ -175,21 +143,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     // Call earlyGHRLookup
     try {
         srv->earlyGHRLookup(pkt, ctx);
-    } catch (const isc::Exception& e) {
-        // Slient exceptions
-    } catch (const boost::exception& e) {
-        // Slient exceptions
-    }
-
-    // Call select subnet
-    try {
-        bool drop = false;
-        if (!ctx) {
-            ctx.reset(new AllocEngine::ClientContext4());
-        }
-        if (ctx) {
-            ctx->subnet_ = srv->fuzz_selectSubnet(pkt, drop, false);
-        }
     } catch (const isc::Exception& e) {
         // Slient exceptions
     } catch (const boost::exception& e) {
