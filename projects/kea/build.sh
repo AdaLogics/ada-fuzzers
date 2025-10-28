@@ -74,7 +74,9 @@ done
 
 for DHCPVER in 4 6
 do
-  for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql fuzz_mysql fuzz_dhcp_pkt_process fuzz_hook_run_script
+  for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql \
+                fuzz_mysql fuzz_dhcp_pkt_process fuzz_hook_run_script \
+                fuzz_hook_radius
   do
     extra_lib=""
     case "$fuzzer" in fuzz_pgsql)
@@ -93,6 +95,10 @@ do
     esac
     case "$fuzzer" in fuzz_hook_run_script)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/run_script/libdhcp_run_script.a"
+      ;;
+    esac
+    case "$fuzzer" in fuzz_hook_radius)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/radius/libdhcp_radius.a"
       ;;
     esac
 
