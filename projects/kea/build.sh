@@ -91,22 +91,27 @@ do
     esac
     case "$fuzzer" in fuzz_dhcp_pkt_process)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/lease_cmds/libdhcp_lease_cmds.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
     case "$fuzzer" in fuzz_hook_run_script)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/run_script/libdhcp_run_script.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
     case "$fuzzer" in fuzz_hook_radius)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/radius/libdhcp_radius.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
     case "$fuzzer" in fuzz_hook_ddns_tuning)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/ddns_tuning/libdhcp_ddns_tuning.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
     case "$fuzzer" in fuzz_hook_lease_query)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/lease_query/libdhcp_lease_query.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
 
