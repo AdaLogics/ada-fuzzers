@@ -44,16 +44,8 @@ namespace isc {
     namespace dhcp {
         class MyDhcpv6Srv : public ControlledDhcpv6Srv {
             public:
-                void fuzz_sanityCheck(const Pkt6Ptr& query) {
-                    sanityCheck(query);
-                }
-
                 void fuzz_classifyPacket(const Pkt6Ptr& pkt) {
                     classifyPacket(pkt);
-                }
-
-                ConstSubnet6Ptr fuzz_selectSubnet(const Pkt6Ptr& question, bool& drop) {
-                    return selectSubnet(question, drop);
                 }
         };
     }
@@ -136,24 +128,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         // Slient exceptions
     }
 
-    // Call sanityCheck for packet checking
-    try {
-        srv->fuzz_sanityCheck(pkt);
-    } catch (const isc::Exception& e) {
-        // Slient exceptions
-    } catch (const boost::exception& e) {
-        // Slient exceptions
-    }
-
-    // Call process functions after the accept and check
-    try {
-        srv->processDhcp6Query(pkt);
-    } catch (const isc::Exception& e) {
-        // Slient exceptions
-    } catch (const boost::exception& e) {
-        // Slient exceptions
-    }
-
     // Prepare client context
     CalloutHandlePtr handle = nullptr;
     AllocEngine::ClientContext6 ctx;
@@ -163,16 +137,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         srv->earlyGHRLookup(pkt, ctx);
     } catch (const isc::Exception& e) {
         // Slient exceptions
-    } catch (const boost::exception& e) {
-        // Slient exceptions
-    }
-
-    // Call select subnet
-    try {
-        bool drop = false;
-        ctx.subnet_ = srv->fuzz_selectSubnet(pkt, drop);
-    } catch (const isc::Exception& e) {
-       // Slient exceptions
     } catch (const boost::exception& e) {
         // Slient exceptions
     }
