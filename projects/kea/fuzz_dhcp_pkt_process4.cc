@@ -84,12 +84,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         return 0;
     }
 
+    // Creating temp config file
     std::string path = fuzz::writeTempConfig(true);
     if (path.empty()) {
         // Early exit if configuration file creation failed
         fuzz::deleteTempFile(path);
         return 0;
     }
+
+    // Creating temp lease file
+    std::string lease_path = fuzz::writeTempLease(true);
 
     Pkt4Ptr pkt;
     std::unique_ptr<MyDhcpv4Srv> srv;
@@ -260,7 +264,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     srv.reset();
 
-    // Remove temp configuration file
+    // Remove temp files
     fuzz::deleteTempFile(path);
+    fuzz::deleteTempFile(lease_path);
     return 0;
 }

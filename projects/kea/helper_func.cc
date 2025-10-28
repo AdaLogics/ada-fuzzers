@@ -20,12 +20,22 @@ namespace fuzz {
         return writeTempFile(isV4? JSON_CONFIG4 : JSON_CONFIG6);
     }
 
-    std::string writeTempFile(const std::string& payload, const char* suffix) {
-        const long r = std::rand();
-        const pid_t pid = ::getpid();
+    std::string writeTempLease(bool isV4) {
+        if (isV4) {
+            return writeTempFile(LEASE4, "", "/tmp/kea-leases4.csv");
+        } else {
+            return writeTempFile(LEASE6, "", "/tmp/kea-leases6.csv");
+        }
+    }
 
-        std::string path = std::string("/tmp/kea_fuzz_") + std::to_string(pid) +
-                           "_" + std::to_string(r) + "." + (suffix ? suffix : "tmp");
+    std::string writeTempFile(const std::string& payload, const char* suffix, const std::string& explicit_path) {
+        std::string path = explicit_path;
+        if (explicit_path.empty()) {
+            const long r = std::rand();
+            const pid_t pid = ::getpid();
+            path = std::string("/tmp/kea_fuzz_") + std::to_string(pid) +
+                   "_" + std::to_string(r) + "." + (suffix ? suffix : "tmp");
+        }
 
         std::ofstream ofs(path.c_str(), std::ios::binary);
         if (ofs.good()) {
