@@ -10,6 +10,7 @@
 #include <dhcp/dhcp6.h>
 #include <dhcp/pkt6.h>
 #include <dhcp/libdhcp++.h>
+#include <dhcp/option.h>
 #include <dhcp/user_chk/user.h>
 #include <dhcp/user_chk/user_data_source.h>
 #include <dhcp/user_chk/user_file.h>
@@ -160,6 +161,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     // Fuzz pkt6_receive
     try {
         handle = getCalloutHandle(pkt);
+        std::vector<uint8_t> duid = fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<int>(2, 128));
+        OptionPtr option = OptionPtr(new Option(Option::V4, 1, duid));
+        pkt->addOption(option);
         handle->setArgument("query6", pkt);
         pkt6_receive(*handle);
     } catch (const isc::Exception& e) {
