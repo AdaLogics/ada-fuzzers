@@ -50,7 +50,7 @@ KEA_STATIC_LIBS+=$(find $BUILD_BASEDIR/bin \( -path '/src/kea/build/src/bin/dhcp
 KEA_STATIC_LIBS_TEST="$KEA_STATIC_LIBS $SRC/kea/build/subprojects/googletest-1.15.2/googletest/libgtest-all.a"
 
 INCLUDES="-I. -I$SRC -I$SRC/kea-fuzzer -Isrc -Ibuild -Isrc/lib -Isrc/bin -Isrc/hooks -Isrc/hooks/d2 -Isrc/hooks/d2/gss_tsig "
-INCLUDES+="-Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -I/usr/include/postgresql -I/usr/include/mariadb"
+INCLUDES+="-Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -Isrc/hooks/dhcp/user_chk -I/usr/include/postgresql -I/usr/include/mariadb"
 KEA_INCLUDES="$INCLUDES -I/src/kea/subprojects/googletest-1.15.2/googletest/include -Ifuzz"
 LIBS="-lpthread -ldl -lm -lc++ -lc++abi -lssl -lcrypto -lkrb5 -lgssapi_krb5"
 export CXXFLAGS="${CXXFLAGS} -std=c++17 -stdlib=libc++ -Wno-unused-parameter -Wno-unused-value"
