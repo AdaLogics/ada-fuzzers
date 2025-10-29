@@ -76,7 +76,8 @@ for DHCPVER in 4 6
 do
   for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql \
                 fuzz_mysql fuzz_dhcp_pkt_process fuzz_hook_run_script \
-                fuzz_hook_radius fuzz_hook_ddns_tuning fuzz_hook_lease_query
+                fuzz_hook_radius fuzz_hook_ddns_tuning fuzz_hook_lease_query \
+                fuzz_hook_flex_id fuzz_hook_user_chk
   do
     extra_lib=""
     case "$fuzzer" in fuzz_pgsql)
@@ -111,6 +112,16 @@ do
     esac
     case "$fuzzer" in fuzz_hook_lease_query)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/lease_query/libdhcp_lease_query.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
+      ;;
+    esac
+    case "$fuzzer" in fuzz_hook_flex_id)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/flex_id/libdhcp_flex_id.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
+      ;;
+    esac
+    case "$fuzzer" in fuzz_hook_user_chk)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/user_chk/libdhcp_user_chk.a"
       cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
