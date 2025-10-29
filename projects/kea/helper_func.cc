@@ -28,6 +28,10 @@ namespace fuzz {
         }
     }
 
+    std::string writeTempUserFile() {
+        return writeTempFile(USER, "", "/tmp/users.txt");
+    }
+
     std::string writeTempFile(const std::string& payload, const char* suffix, const std::string& explicit_path) {
         std::string path = explicit_path;
         if (explicit_path.empty()) {

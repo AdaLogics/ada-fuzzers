@@ -71,9 +71,15 @@ address,duid,valid_lifetime,expire,subnet_id,pref_lifetime,lease_type,iaid,prefi
 2001:db8::100,00:01:00:01:12:34:56:78:aa:bb:cc:dd,86400,1767225600,1,43200,0,1,128,1,1,host1v6.example.test,aa:bb:cc:dd:ee:01,0,{  },1,1,0
 )LEASE";
 
+static const std::string USER = R"USER({ "type" : "HW_ADDR", "id" : "01AC00F03344", "opt1" : "true" }
+{ "type" : "HW_ADDR", "id" : "01:AC:00:F0:33:45", "opt1" : "true" }
+{ "type" : "DUID", "id" : "225060de0a0b", "opt1" : "true" }
+{ "type" : "DUID", "id" : "22:50:60:de:0a:0c", "opt1" : "true" })USER";
+
 namespace fuzz {
     std::string writeTempConfig(bool isV4);
     std::string writeTempLease(bool isV4);
+    std::string writeTempUserFile();
     std::string writeTempFile(const std::string& payload, const char* suffix = "json", const std::string& explicit_path = "");
     void deleteTempFile(std::string file_path);
     isc::data::ElementPtr parseJSON(const std::string& s);

@@ -50,7 +50,7 @@ KEA_STATIC_LIBS+=$(find $BUILD_BASEDIR/bin \( -path '/src/kea/build/src/bin/dhcp
 KEA_STATIC_LIBS_TEST="$KEA_STATIC_LIBS $SRC/kea/build/subprojects/googletest-1.15.2/googletest/libgtest-all.a"
 
 INCLUDES="-I. -I$SRC -I$SRC/kea-fuzzer -Isrc -Ibuild -Isrc/lib -Isrc/bin -Isrc/hooks -Isrc/hooks/d2 -Isrc/hooks/d2/gss_tsig "
-INCLUDES+="-Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -I/usr/include/postgresql -I/usr/include/mariadb"
+INCLUDES+="-Isrc/hooks/dhcp/pgsql -Isrc/hooks/dhcp/mysql -Isrc/hooks/dhcp/user_chk -I/usr/include/postgresql -I/usr/include/mariadb"
 KEA_INCLUDES="$INCLUDES -I/src/kea/subprojects/googletest-1.15.2/googletest/include -Ifuzz"
 LIBS="-lpthread -ldl -lm -lc++ -lc++abi -lssl -lcrypto -lkrb5 -lgssapi_krb5"
 export CXXFLAGS="${CXXFLAGS} -std=c++17 -stdlib=libc++ -Wno-unused-parameter -Wno-unused-value"
@@ -76,7 +76,8 @@ for DHCPVER in 4 6
 do
   for fuzzer in fuzz_dhcp_parser fuzz_eval fuzz_dhcp_pkt fuzz_pgsql \
                 fuzz_mysql fuzz_dhcp_pkt_process fuzz_hook_run_script \
-                fuzz_hook_radius fuzz_hook_ddns_tuning fuzz_hook_lease_query
+                fuzz_hook_radius fuzz_hook_ddns_tuning fuzz_hook_lease_query \
+                fuzz_hook_flex_id fuzz_hook_user_chk
   do
     extra_lib=""
     case "$fuzzer" in fuzz_pgsql)
@@ -111,6 +112,16 @@ do
     esac
     case "$fuzzer" in fuzz_hook_lease_query)
       extra_lib="$SRC/kea/build/src/hooks/dhcp/lease_query/libdhcp_lease_query.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
+      ;;
+    esac
+    case "$fuzzer" in fuzz_hook_flex_id)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/flex_id/libdhcp_flex_id.a"
+      cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
+      ;;
+    esac
+    case "$fuzzer" in fuzz_hook_user_chk)
+      extra_lib="$SRC/kea/build/src/hooks/dhcp/user_chk/libdhcp_user_chk.a"
       cp $SRC/kea-fuzzer/fuzz_dhcp_pkt.dict $OUT/${fuzzer}${DHCPVER}.dict
       ;;
     esac
