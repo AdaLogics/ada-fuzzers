@@ -36,12 +36,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         str::tokens(payload, delim, isEscape);
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     // Target str quotedStringToBinary
     try {
         str::quotedStringToBinary(payload);
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -50,12 +54,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         str::decodeFormattedHexString(payload, out);
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     // Target str decodeColonSeparatedHexString
     try {
         str::decodeColonSeparatedHexString(payload, out);
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -64,12 +72,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         str::decodeSeparatedHexString(payload, delim, out);
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     // Target str trim
     try {
         str::trim(payload);
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -79,6 +91,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         str::lowercase(temp);
         str::uppercase(temp);
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -91,12 +105,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         }
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     // Target encodeUtf8
     try {
         encode::encodeUtf8(payload);
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -119,6 +137,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         ptimeToText(pt);
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     // Target durationToText
@@ -126,6 +146,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         time_duration td = pt.time_of_day();
         isc::util::durationToText(td);
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
