@@ -36,7 +36,7 @@ fi
 meson setup build --prefix="$OUT" $SANITIZER_CHOICE -D cpp_std=c++17 \
   -D fuzz=enabled -D tests=enabled -D crypto=openssl -D default_library=static \
   -D default_both_libraries=static -D cpp_args="$CPP_ARGS" -D cpp_link_args="$LD_ARGS" \
-  -D postgresql=enabled -D mysql=enabled -D krb5=enabled
+  -D postgresql=enabled -D mysql=enabled -D krb5=enabled -D b_ndebug=true
 meson compile --verbose -C build
 
 # Package static library
