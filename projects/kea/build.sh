@@ -153,6 +153,14 @@ do
   done
 done
 
+# Prepare maximum size option for configuration parsing related fuzzers
+for fuzzer in fuzz_eval4 fuzz_eval6 fuzz_dhcp_parser4 fuzz_dhcp_parser6 \
+              fuzz_dhcp_pkt4 fuzz_dhcp_pkt6 fuzz_cc fuzz_d2 fuzz_agent \
+              fuzz_config_kea_dhcp4 fuzz_config_kea_dhcp6
+do
+    echo -e "[libfuzzer]\nmax_len=25600" > $OUT/$fuzzer.options
+done
+
 # Prepare the seeds
 zip -j $OUT/fuzz_dhcpsrv_seed_corpus.zip $SRC/kea-fuzzer/corp/*.json
 zip -j $OUT/fuzz_dhcp_parser4_seed_corpus.zip $SRC/kea-fuzzer/corp/*.json

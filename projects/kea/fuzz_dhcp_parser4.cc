@@ -102,12 +102,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     return 0;
   }
 
+  // Provide two type of payload with different length to avoid
+  // timeout from parsing trusted configuration file
+  std::string limit_payload = fdp.ConsumeRandomLengthString(25600);
+  std::string full_payload(reinterpret_cast<const char*>(data), size);
 
   // First target based on the raw payload entire. This makes seeding a lot
   // easier.
-  std::string raw_payload(reinterpret_cast<const char*>(data), size);
   try {
-    ElementPtr rawTree = ctx.parseString(raw_payload, Parser4Context::PARSER_JSON);
+    ElementPtr rawTree = ctx.parseString(limit_payload, Parser4Context::PARSER_JSON);
 
     // Configure the server with valid tree
     if (rawTree) {
@@ -118,11 +121,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   } catch (const isc::Exception&) {
   }
 
-  // Generate random string
-  const std::string payload = fdp.ConsumeRemainingBytesAsString();
-
   try {
-    ElementPtr tree = ctx.parseString(payload, type);
+    ElementPtr tree = ctx.parseString(limit_payload, type);
 
     // Configure the server with valid tree
     if (tree) {
@@ -138,7 +138,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   // File base parsing
   try {
-    std::string path = fuzz::writeTempFile(payload, "json");
+    std::string path = fuzz::writeTempFile(limit_payload, "json");
     if (!path.empty()) {
       ElementPtr fileTree = ctx.parseFile(path, Parser4Context::PARSER_DHCP4);
       if (fileTree) {
@@ -153,7 +153,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   // Command parsing
   try {
-    ElementPtr args = fuzz::parseJSON(payload);
+    ElementPtr args = fuzz::parseJSON(full_payload);
     ElementPtr cmd = Element::create(cmdStr);
 
     // Configure root element
@@ -169,14 +169,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // Response answer parsing
     int status = 0;
-    parseAnswer(status, fuzz::parseJSON(payload));
+    parseAnswer(status, fuzz::parseJSON(full_payload));
   } catch(const isc::Exception&) {}
 
     // Try fuzzing specific deeper fuzzers directly
 
     // Subnets6ListConfigParser
     try {
-        ElementPtr elem = fuzz::parseJSON(payload);
+        ElementPtr elem = fuzz::parseJSON(full_payload);
         SrvConfigPtr srv = SrvConfigPtr(new SrvConfig());
         Subnets6ListConfigParser parser(fdp.ConsumeBool());
         parser.parse(srv, elem, fdp.ConsumeBool());
@@ -187,7 +187,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     // RelayInfoParser
     try {
         Option::Universe opt = Option::V4;
-        ElementPtr elem = fuzz::parseJSON(payload);
+        ElementPtr elem = fuzz::parseJSON(full_payload);
         Network::RelayInfoPtr info = Network::RelayInfoPtr(new Network::RelayInfo());
         RelayInfoParser parser(opt);
         parser.parse(info, elem);
@@ -197,7 +197,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // PdPoolParser
     try {
-        ElementPtr elem = fuzz::parseJSON(payload);
+        ElementPtr elem = fuzz::parseJSON(full_payload);
         PoolStoragePtr pools(new PoolStorage());
         PdPoolParser parser = PdPoolParser();
         parser.parse(pools, elem, fdp.ConsumeBool());
@@ -207,7 +207,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
     // CompatibilityParser
     try {
-        ElementPtr elem = fuzz::parseJSON(payload);
+        ElementPtr elem = fuzz::parseJSON(full_payload);
         SrvConfig srv = SrvConfig();
         CompatibilityParser parser = CompatibilityParser();
         parser.parse(elem, srv);
