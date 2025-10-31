@@ -113,6 +113,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         request.reset();
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     try {
@@ -138,6 +140,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         response.reset();
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     try {
@@ -147,6 +151,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         json.finalize();
         json.reset();
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -159,6 +165,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         CfgHttpHeaderstoElement(headers);
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     try{
@@ -168,6 +176,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         cfg.toElement();
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     try{
@@ -175,6 +185,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         Url url(payload);
         url.isValid();
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
@@ -185,6 +197,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         HttpDateTime::fromRfc850(payload);
     } catch (const isc::Exception&) {
         // Slient exceptions
+    } catch (const boost::exception&) {
+        // Slient exceptions
     }
 
     try {
@@ -193,6 +207,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
         request.reset();
         response.reset();
     } catch (const isc::Exception&) {
+        // Slient exceptions
+    } catch (const boost::exception&) {
         // Slient exceptions
     }
 
