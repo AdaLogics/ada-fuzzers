@@ -55,17 +55,26 @@ KEA_INCLUDES="$INCLUDES -I/src/kea/subprojects/googletest-1.15.2/googletest/incl
 LIBS="-lpthread -ldl -lm -lc++ -lc++abi -lssl -lcrypto -lkrb5 -lgssapi_krb5"
 export CXXFLAGS="${CXXFLAGS} -std=c++17 -stdlib=libc++ -Wno-unused-parameter -Wno-unused-value"
 
-for fuzzer in fuzz_ioaddress fuzz_http fuzz_dhcpsrv fuzz_agent fuzz_d2 fuzz_util fuzz_cc fuzz_dhcpsrv_csv_lease fuzz_crypto fuzz_hook_tsig
+# Build non-dhcp specific fuzzers
+for fuzzer in fuzz_cc fuzz_d2 fuzz_agent fuzz_util fuzz_dhcpsrv fuzz_dhcpsrv_csv_lease fuzz_dns fuzz_encode fuzz_cryptolink
 do
   extra_lib=""
   case "$fuzzer" in fuzz_hook_tsig)
     extra_lib="$SRC/kea/build/src/hooks/d2/gss_tsig/libddns_gss_tsig.a"
     ;;
   esac
-  $CXX $CXXFLAGS "$SRC/kea-fuzzer/helper_func.cc" \
-    "$SRC/kea-fuzzer/${fuzzer}.cc"  \
-    -Wl,--start-group $KEA_STATIC_LIBS $extra_lib -Wl,--end-group  \
-    $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}"
+  
+  # fuzz_dns, fuzz_encode, and fuzz_cryptolink don't need helper_func.cc
+  if [ "$fuzzer" = "fuzz_dns" ] || [ "$fuzzer" = "fuzz_encode" ] || [ "$fuzzer" = "fuzz_cryptolink" ]; then
+    $CXX $CXXFLAGS "$SRC/kea-fuzzer/${fuzzer}.cc"  \
+      -Wl,--start-group $KEA_STATIC_LIBS $extra_lib -Wl,--end-group  \
+      $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}"
+  else
+    $CXX $CXXFLAGS "$SRC/kea-fuzzer/helper_func.cc" \
+      "$SRC/kea-fuzzer/${fuzzer}.cc"  \
+      -Wl,--start-group $KEA_STATIC_LIBS $extra_lib -Wl,--end-group  \
+      $INCLUDES $LIBS $LIB_FUZZING_ENGINE -o "$OUT/${fuzzer}"
+  fi
 
   if [ -f "$SRC/kea-fuzzer/${fuzzer}.dict" ]; then
     cp $SRC/kea-fuzzer/${fuzzer}.dict $OUT
