@@ -22,22 +22,6 @@ static thread_local FuzzedDataProvider* g_fdp = nullptr;
 static thread_local std::string g_mysql_error;
 static thread_local std::string g_stmt_error;
 static thread_local std::string g_tls_cipher;
-static thread_local std::unordered_map<MYSQL_STMT*, StmtState*> g_stmt_state;
-static thread_local std::vector<MYSQL_STMT*> g_all_stmts;
-
-extern "C" void mysqlmock_load_bytes(const uint8_t* data, size_t size) {
-    for (auto* st : g_all_stmts) {
-       free(st);
-    }
-    g_all_stmts.clear();
-    for (auto& kv : g_stmt_state) {
-        delete kv.second;
-    }
-    g_stmt_state.clear();
-    g_stmt_state.rehash(0);
-    delete g_fdp;
-    g_fdp = new FuzzedDataProvider(data, size);
-}
 
 struct MockResRow {
     enum ColKind {
@@ -62,7 +46,23 @@ struct StmtState {
     unsigned int field_count = 0;
 };
 
+static thread_local std::unordered_map<MYSQL_STMT*, StmtState*> g_stmt_state;
+static thread_local std::vector<MYSQL_STMT*> g_all_stmts;
 static thread_local std::vector<StmtState*> g_live_stmts;
+
+extern "C" void mysqlmock_load_bytes(const uint8_t* data, size_t size) {
+    for (auto* st : g_all_stmts) {
+       free(st);
+    }
+    g_all_stmts.clear();
+    for (auto& kv : g_stmt_state) {
+        delete kv.second;
+    }
+    g_stmt_state.clear();
+    g_stmt_state.rehash(0);
+    delete g_fdp;
+    g_fdp = new FuzzedDataProvider(data, size);
+}
 
 static bool is_like(const std::string& hay, const char* needle) {
     std::string h = hay;
@@ -211,6 +211,10 @@ static void fill_fuzz_rows(StmtState* s, unsigned int ncols) {
 }
 
 extern "C" {
+    int mysql_server_init(int argc, char **argv, char **groups) {
+        return 0;
+    }
+
     MYSQL* mysql_init(MYSQL* in) {
         return in ? in : reinterpret_cast<MYSQL*>(0x1);
     }
