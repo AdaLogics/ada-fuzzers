@@ -1,0 +1,1 @@
+{"class": "AIS", "device": "/dev/ttyUSB0", "type": 1, "repeat": 0, "mmsi": 123456789, "status": 0, "turn": 0, "speed": 10.2, "accuracy": true, "lon": -122.4194, "lat": 37.7749, "course": 45.0, "heading": 46, "second": 15, "maneuver": 0, "raim": true, "radio": 0}

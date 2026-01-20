@@ -1,0 +1,1 @@
+{"class": "DEVICES", "devices": [{"class": "DEVICE", "path": "/dev/ttyUSB0", "driver": "u-blox", "subtype": "SW 1.00,HW 00070000", "activated": "2026-01-07T12:00:00.000Z", "flags": 1, "native": 1, "bps": 9600, "parity": "N", "stopbits": 1, "cycle": 1.0}]}
