@@ -4,7 +4,7 @@ TARGET=Fuzzer
 jsonEXE=FuzzJson
 packetEXE=FuzzPacket
 driversEXE=FuzzDrivers
-commandEXE=FuzzCommandDispatcher
+clientEXE=FuzzClient
 
 #Compiler Flags
 DIR=$(shell ls -d ../gpsd*~dev/)
@@ -20,12 +20,14 @@ $(TARGET):
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(jsonEXE).c
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(packetEXE).c
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(driversEXE).c
+	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(clientEXE).c
 
 	$(CXX) $(CFLAGS) $(LibINC) -o $(jsonEXE) $(jsonEXE).o  $(LibFLAGS)
 	$(CXX) $(CFLAGS) $(LibINC) -o $(packetEXE) $(packetEXE).o  $(LibFLAGS)
 	$(CXX) $(CFLAGS) $(LibINC) -o $(driversEXE) $(driversEXE).o  $(LibFLAGS)
+	$(CXX) $(CFLAGS) $(LibINC) -o $(clientEXE) $(clientEXE).o  $(LibFLAGS)
 
 clean:
-	rm $(jsonEXE) $(packetEXE) $(driversEXE) *.o
+	rm $(jsonEXE) $(packetEXE) $(driversEXE) $(clientEXE) *.o
 
 .PHONY: all clean

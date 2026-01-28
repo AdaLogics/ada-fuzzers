@@ -28,7 +28,7 @@ make
 popd
 
 # Prepare and copy fuzzers and corpus to $OUT
-for fuzzer in FuzzJson FuzzPacket FuzzDrivers
+for fuzzer in FuzzJson FuzzPacket FuzzDrivers FuzzClient
 do
   cp fuzzer/${fuzzer} $OUT/
   zip -j $OUT/${fuzzer}_seed_corpus.zip $SRC/gpsd/corp/${fuzzer}_seed_corpus/*
