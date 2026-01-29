@@ -28,8 +28,12 @@ make
 popd
 
 # Prepare and copy fuzzers and corpus to $OUT
-for fuzzer in FuzzJson FuzzPacket FuzzDrivers FuzzClient
+for fuzzer in FuzzJson FuzzPacket FuzzDrivers FuzzClient FuzzDriversStructured
 do
   cp fuzzer/${fuzzer} $OUT/
   zip -j $OUT/${fuzzer}_seed_corpus.zip $SRC/gpsd/corp/${fuzzer}_seed_corpus/*
+  # Copy dictionary if it exists
+  if [ -f "fuzzer/${fuzzer}.dict" ]; then
+    cp fuzzer/${fuzzer}.dict $OUT/
+  fi
 done
