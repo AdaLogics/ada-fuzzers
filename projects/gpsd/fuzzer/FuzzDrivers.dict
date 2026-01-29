@@ -1,0 +1,294 @@
+# Dictionary for gpsd FuzzDrivers harness
+# Protocol magic bytes and common patterns
+
+# NMEA leader
+nmea_leader="$"
+nmea_exclaim="!"
+
+# NMEA line endings
+crlf="\x0d\x0a"
+cr="\x0d"
+lf="\x0a"
+
+# NMEA separators
+comma=","
+star="*"
+
+# NMEA Talker IDs (standard)
+talker_gp="GP"
+talker_gl="GL"
+talker_ga="GA"
+talker_gb="GB"
+talker_gn="GN"
+talker_gq="GQ"
+talker_gi="GI"
+talker_bd="BD"
+
+# NMEA Talker IDs (other devices)
+talker_ap="AP"
+talker_ai="AI"
+talker_ii="II"
+talker_hc="HC"
+talker_he="HE"
+talker_in="IN"
+talker_sd="SD"
+talker_wd="WD"
+
+# NMEA proprietary prefix
+talker_p="P"
+
+# Common NMEA sentence types
+nmea_gga="GGA"
+nmea_gll="GLL"
+nmea_gsa="GSA"
+nmea_gsv="GSV"
+nmea_rmc="RMC"
+nmea_vtg="VTG"
+nmea_zda="ZDA"
+nmea_gbs="GBS"
+nmea_gst="GST"
+nmea_grs="GRS"
+nmea_gns="GNS"
+nmea_dtm="DTM"
+nmea_txt="TXT"
+nmea_bwc="BWC"
+nmea_dbt="DBT"
+nmea_dpt="DPT"
+nmea_hdg="HDG"
+nmea_hdm="HDM"
+nmea_hdt="HDT"
+nmea_mtw="MTW"
+nmea_mwd="MWD"
+nmea_mwv="MWV"
+nmea_rot="ROT"
+nmea_ths="THS"
+nmea_xdr="XDR"
+nmea_sti="STI"
+nmea_info="INFO"
+nmea_accuracy="ACCURACY"
+
+# Common full NMEA sentence starters
+gpgga="$GPGGA,"
+gpgll="$GPGLL,"
+gpgsa="$GPGSA,"
+gpgsv="$GPGSV,"
+gprmc="$GPRMC,"
+gpvtg="$GPVTG,"
+gpzda="$GPZDA,"
+gpgbs="$GPGBS,"
+gpgst="$GPGST,"
+gpgrs="$GPGRS,"
+gpgns="$GPGNS,"
+gpdtm="$GPDTM,"
+gptxt="$GPTXT,"
+
+# GLONASS sentences
+glgga="$GLGGA,"
+glgll="$GLGLL,"
+glgsa="$GLGSA,"
+glgsv="$GLGSV,"
+
+# Galileo sentences
+gagga="$GAGGA,"
+gagsa="$GAGSA,"
+gagsv="$GAGSV,"
+
+# BeiDou sentences
+gbgga="$GBGGA,"
+gbgsa="$GBGSA,"
+gbgsv="$GBGSV,"
+bdgga="$BDGGA,"
+bdgsa="$BDGSA,"
+bdgsv="$BDGSV,"
+
+# Combined GNSS
+gngga="$GNGGA,"
+gngll="$GNGLL,"
+gngsa="$GNGSA,"
+gngsv="$GNGSV,"
+gnrmc="$GNRMC,"
+gnvtg="$GNVTG,"
+gnzda="$GNZDA,"
+
+# Proprietary Garmin
+pgrme="$PGRME,"
+pgrmf="$PGRMF,"
+pgrmm="$PGRMM,"
+pgrmt="$PGRMT,"
+pgrmv="$PGRMV,"
+pgrmz="$PGRMZ,"
+pglor="$PGLOR,"
+
+# Proprietary Ashtech/Trimble
+pashr="$PASHR,"
+
+# Proprietary Skytraq
+psti="$PSTI,"
+psti030="$PSTI,030,"
+psti032="$PSTI,032,"
+psti033="$PSTI,033,"
+psti035="$PSTI,035,"
+psti036="$PSTI,036,"
+
+# Proprietary TNT
+ptnta="$PTNTA,"
+
+# Proprietary other
+pgpsp="$PGPSP,"
+ptnl="$PTNL,"
+
+# AIS/AIVDM messages
+aivdm="!AIVDM,"
+aivdm11="!AIVDM,1,1,,"
+aivdm21="!AIVDM,2,1,,"
+aivdm22="!AIVDM,2,2,,"
+aivdo="!AIVDO,"
+bsvdm="!BSVDM,"
+abvdm="!ABVDM,"
+savdm="!SAVDM,"
+
+# AIS channels
+ais_a=",A,"
+ais_b=",B,"
+
+# UBX protocol (u-blox)
+ubx_leader="\xb5\x62"
+ubx_nav_pvt="\xb5\x62\x01\x07"
+ubx_nav_sol="\xb5\x62\x01\x06"
+ubx_nav_posllh="\xb5\x62\x01\x02"
+ubx_nav_velned="\xb5\x62\x01\x12"
+ubx_nav_status="\xb5\x62\x01\x03"
+ubx_nav_dop="\xb5\x62\x01\x04"
+ubx_nav_timegps="\xb5\x62\x01\x20"
+ubx_nav_timeutc="\xb5\x62\x01\x21"
+ubx_nav_svinfo="\xb5\x62\x01\x30"
+ubx_nav_sat="\xb5\x62\x01\x35"
+ubx_rxm="\xb5\x62\x02"
+ubx_rxm_rawx="\xb5\x62\x02\x15"
+ubx_cfg="\xb5\x62\x06"
+ubx_mon="\xb5\x62\x0a"
+ubx_inf="\xb5\x62\x04"
+
+# SiRF protocol
+sirf_leader="\xa0\xa2"
+sirf_trailer="\xb0\xb3"
+sirf_mid2="\xa0\xa2\x00\x02\x02"
+sirf_mid7="\xa0\xa2\x00\x02\x07"
+sirf_mid41="\xa0\xa2\x00\x02\x29"
+
+# Skytraq protocol
+skytraq_leader="\xa0\xa1"
+skytraq_trailer="\x0d\x0a"
+
+# RTCM2 (6-bit encoding preamble)
+rtcm2_sync="\x66\x66"
+rtcm2_preamble="\xd5\x55"
+
+# RTCM3 protocol
+rtcm3_leader="\xd3"
+rtcm3_1005="\xd3\x00\x13\x3e\xd0"
+rtcm3_1006="\xd3\x00\x15\x3e\xe0"
+rtcm3_1077="\xd3\x00\x00\x43\x50"
+rtcm3_1087="\xd3\x00\x00\x43\xd0"
+rtcm3_1230="\xd3\x00\x00\x4c\xe0"
+
+# TSIP protocol (Trimble)
+tsip_dle="\x10"
+tsip_etx="\x03"
+tsip_leader="\x10"
+tsip_report_8f="\x10\x8f"
+tsip_report_8fab="\x10\x8f\xab"
+
+# Zodiac protocol
+zodiac_leader="\xff\x81"
+
+# iTalk protocol
+italk_leader="<!"
+italk_start="<"
+italk_exclaim="!"
+
+# Navcom protocol
+navcom_leader="\x02\x99\x66"
+
+# GeoStar protocol
+geostar_leader="\x50\x53\x47\x47"
+geostar_psgg="PSGG"
+
+# Superstar2 protocol
+superstar2_soh="\x01"
+
+# GREIS protocol (Javad)
+greis_re="RE"
+greis_er="ER"
+
+# Evermore protocol
+evermore_dle="\x10"
+evermore_stx="\x02"
+evermore_etx="\x03"
+evermore_leader="\x10\x02"
+
+# Allystar protocol
+allystar_leader="\xf1\xd9"
+
+# CASIC protocol
+casic_leader="\xba\xce"
+
+# SPARTN protocol
+spartn_preamble="\x73"
+
+# Oncore protocol (Motorola)
+oncore_leader="@@"
+oncore_at="@"
+
+# Garmin text
+garmintxt_at="@"
+
+# JSON (for gpsd client)
+json_start="{"
+json_end="}"
+
+# Common GPS data values
+dir_n="N"
+dir_s="S"
+dir_e="E"
+dir_w="W"
+status_a="A"
+status_v="V"
+mode_a="A"
+mode_d="D"
+mode_e="E"
+mode_m="M"
+mode_s="S"
+mode_n="N"
+
+# Common numeric patterns
+zero="0"
+one="1"
+two="2"
+three="3"
+dot="."
+double_zero="00"
+triple_zero="000"
+
+# Checksum patterns
+checksum_00="*00"
+checksum_ff="*FF"
+
+# Sample coordinate values
+sample_lat="4807.038"
+sample_lon="01131.000"
+sample_time="123519"
+
+# Sample complete NMEA sentences
+full_gga="$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47"
+full_rmc="$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A"
+full_gll="$GPGLL,4916.45,N,12311.12,W,225444,A,*1D"
+full_vtg="$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48"
+full_zda="$GPZDA,201530.00,04,07,2002,00,00*60"
+full_txt="$GPTXT,01,01,02,ANTARIS ATR062x*61"
+
+# Additional sentence variations
+gsv_example="$GPGSV,3,1,12,01,05,005,00,02,17,305,00,03,13,086,00,04,08,046,00*73"
+gsa_example="$GPGSA,A,3,01,02,03,04,05,06,07,08,09,10,11,12,1.5,1.0,1.0*30"
+dbt_example="$SDDBT,7.7,f,2.3,M,1.3,F*05"
+hdg_example="$HCHDG,98.3,0.0,E,12.6,W*57"
