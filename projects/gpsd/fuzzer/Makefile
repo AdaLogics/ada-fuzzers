@@ -4,6 +4,7 @@ TARGET=Fuzzer
 jsonEXE=FuzzJson
 packetEXE=FuzzPacket
 driversEXE=FuzzDrivers
+driversStructuredEXE=FuzzDriversStructured
 clientEXE=FuzzClient
 
 #Compiler Flags
@@ -20,14 +21,16 @@ $(TARGET):
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(jsonEXE).c
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(packetEXE).c
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(driversEXE).c
+	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(driversStructuredEXE).c
 	$(CC) $(CFLAGS) $(INC) $(EXTCFLAGS) -c $(clientEXE).c
 
 	$(CXX) $(CFLAGS) $(LibINC) -o $(jsonEXE) $(jsonEXE).o  $(LibFLAGS)
 	$(CXX) $(CFLAGS) $(LibINC) -o $(packetEXE) $(packetEXE).o  $(LibFLAGS)
 	$(CXX) $(CFLAGS) $(LibINC) -o $(driversEXE) $(driversEXE).o  $(LibFLAGS)
+	$(CXX) $(CFLAGS) $(LibINC) -o $(driversStructuredEXE) $(driversStructuredEXE).o  $(LibFLAGS)
 	$(CXX) $(CFLAGS) $(LibINC) -o $(clientEXE) $(clientEXE).o  $(LibFLAGS)
 
 clean:
-	rm $(jsonEXE) $(packetEXE) $(driversEXE) $(clientEXE) *.o
+	rm $(jsonEXE) $(packetEXE) $(driversEXE) $(driversStructuredEXE) $(clientEXE) *.o
 
 .PHONY: all clean
