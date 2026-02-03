@@ -39,12 +39,26 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
 
     /* Test ntrip_parse_url() - if device path was populated */
     if (strlen(devconf.path) > 0) {
+        char modified_path[128];
         struct ntrip_stream_t stream;
         struct gpsd_errout_t errout;
+
+        /* Ensure port is present to avoid getservbyname() MSAN false positive */
+        strlcpy(modified_path, devconf.path, sizeof(modified_path));
+        char *slash = strrchr(modified_path, '/');
+        char *colon = strrchr(modified_path, ':');
+        char *at = strrchr(modified_path, '@');
+
+        if (slash != NULL && strlen(modified_path) < 122 &&
+            (colon == NULL || (at != NULL && colon < at) || colon < slash)) {
+            memmove(slash + 5, slash, strlen(slash) + 1);
+            memcpy(slash, ":2101", 5);
+        }
+
         memset(&stream, 0, sizeof(stream));
         memset(&errout, 0, sizeof(errout));
         errout.debug = 0;
-        ntrip_parse_url(&errout, &stream, devconf.path);
+        ntrip_parse_url(&errout, &stream, modified_path);
     }
 
     /* Test parse_uri_dest() - if device path was populated */
