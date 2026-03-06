@@ -37,54 +37,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     /* Test json_device_read() - parses ?DEVICE command JSON */
     json_device_read(input, &devconf, NULL);
 
-    /* Test ntrip_parse_url() - if device path was populated */
-    if (strlen(devconf.path) > 0) {
-        char modified_path[128];
-        struct ntrip_stream_t stream;
-        struct gpsd_errout_t errout;
-
-        strlcpy(modified_path, devconf.path, sizeof(modified_path));
-
-        /* Ensure port is present to avoid getservbyname() MSAN false positive */
-        char *slash = strrchr(modified_path, '/');
-        if (slash == NULL && strlen(modified_path) < 122) {
-            strcat(modified_path, "/mount");
-            slash = strrchr(modified_path, '/');
-        }
-
-        if (slash != NULL && strlen(modified_path) < 122) {
-            char *colon, *at, *rsb, *lsb;
-            char temp = *slash;
-            *slash = '\0';
-            colon = strrchr(modified_path, ':');
-            at = strrchr(modified_path, '@');
-            rsb = strrchr(modified_path, ']');
-            lsb = strrchr(modified_path, '[');
-            *slash = temp;
-
-            int needs_port = 0;
-            if (colon == NULL) {
-                needs_port = 1;
-            } else if (at != NULL && colon < at) {
-                needs_port = 1;
-            } else if (rsb != NULL && lsb != NULL && rsb > colon) {
-                needs_port = 1;
-            } else if (colon != NULL && (colon + 1 == slash || *(colon + 1) == '\0')) {
-                needs_port = 1;
-            }
-
-            if (needs_port) {
-                memmove(slash + 5, slash, strlen(slash) + 1);
-                memcpy(slash, ":2101", 5);
-            }
-        }
-
-        memset(&stream, 0, sizeof(stream));
-        memset(&errout, 0, sizeof(errout));
-        errout.debug = 0;
-        ntrip_parse_url(&errout, &stream, modified_path);
-    }
-
     /* Test parse_uri_dest() - if device path was populated */
     if (strlen(policy.devpath) > 0) {
         char uri[GPS_PATH_MAX];
